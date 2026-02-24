@@ -52,7 +52,6 @@ struct DeckWorkspaceView: View {
                             deckHeight: squareSize,
                             recordOriginX: chromeInset,
                             recordDiameter: squareSize,
-                            controlsWidth: controlsWidth,
                             progress: scrubProgress,
                             showsDebugGuides: showsTonearmDebugGuides,
                             onCounterweightTapped: {
@@ -91,117 +90,28 @@ private struct TonearmWorkspaceOverlay: View {
     let deckHeight: CGFloat
     let recordOriginX: CGFloat
     let recordDiameter: CGFloat
-    let controlsWidth: CGFloat
     let progress: Double
     let showsDebugGuides: Bool
     let onCounterweightTapped: () -> Void
     let onScrubChanged: (Double) -> Void
     let onScrubEnded: (Double) -> Void
 
-    private static let scrubGuideAngleDegrees: Double = -45
+    private static let scrubGuideAngleDegrees: Double = -33
+    private static let scrubCurveDepthFraction: CGFloat = 0.12
     private let layout = VinylRecordLayout()
 
     var body: some View {
         let recordGeometry = layout.resolved(forDiameter: recordDiameter)
-        let scrubGuide = scrubGuideGeometry(for: recordGeometry)
-        let holderDiameter = recordDiameter * 0.25
-        let controlsTrailingInset = recordOriginX
-        let pivotPoint = CGPoint(
-            x: deckWidth - controlsTrailingInset - (holderDiameter / 2),
-            y: holderDiameter / 2
-        )
-        let redGuideDirection = normalizedVector(from: scrubGuide.start, to: scrubGuide.end)
-        let midpointGuidePerpendicular = CGPoint(x: -redGuideDirection.y, y: redGuideDirection.x)
-        let redGuideMidpoint = midpoint(between: scrubGuide.start, and: scrubGuide.end)
-        let controlDirection = orientedToward(
-            unit: midpointGuidePerpendicular,
-            targetVector: CGPoint(
-                x: redGuideMidpoint.x - pivotPoint.x,
-                y: redGuideMidpoint.y - pivotPoint.y
-            )
-        )
-        let redGuideLength = distance(from: scrubGuide.start, to: scrubGuide.end)
-        let orangeCurveOffset = max(redGuideLength * 0.27, recordDiameter * 0.045)
-        let orangeCurveControl = CGPoint(
-            x: redGuideMidpoint.x + (controlDirection.x * orangeCurveOffset),
-            y: redGuideMidpoint.y + (controlDirection.y * orangeCurveOffset)
-        )
-        let clampedProgress = min(max(progress, 0), 1)
-        let needlePoint = pointOnQuadraticBezier(
-            start: scrubGuide.start,
-            control: orangeCurveControl,
-            end: scrubGuide.end,
-            progress: clampedProgress
-        )
-        let armDirection = normalizedVector(from: pivotPoint, to: needlePoint)
-        let centerArmDirection = normalizedVector(from: pivotPoint, to: redGuideMidpoint)
-        let centerHeadAxisDirection = orientedToward(
-            unit: midpointGuidePerpendicular,
-            targetVector: CGPoint(
-                x: pivotPoint.x - redGuideMidpoint.x,
-                y: pivotPoint.y - redGuideMidpoint.y
-            )
-        )
-        let headOffsetAngle = signedAngle(from: centerArmDirection, to: centerHeadAxisDirection)
-        let headAxisDirection = rotated(unit: armDirection, by: headOffsetAngle)
-        let headAngle = Angle(radians: atan2(headAxisDirection.y, headAxisDirection.x))
-        let headWidth = max(24, recordDiameter * 0.08)
-        let headMountOffset = max(10, headWidth * 0.42)
-        let headMountPoint = CGPoint(
-            x: needlePoint.x + (headAxisDirection.x * headMountOffset),
-            y: needlePoint.y + (headAxisDirection.y * headMountOffset)
-        )
-        let headStraightLength = max(28, recordDiameter * 0.1)
-        let headCurveJoinPoint = CGPoint(
-            x: headMountPoint.x + (headAxisDirection.x * headStraightLength),
-            y: headMountPoint.y + (headAxisDirection.y * headStraightLength)
-        )
-        let pivotStraightDirection = armDirection
-        let pivotStraightLength = max(60, recordDiameter * 0.205)
-        let pivotCurveJoinPoint = CGPoint(
-            x: pivotPoint.x + (pivotStraightDirection.x * pivotStraightLength),
-            y: pivotPoint.y + (pivotStraightDirection.y * pivotStraightLength)
-        )
-        let curveEndTangent = CGPoint(x: -headAxisDirection.x, y: -headAxisDirection.y)
-        let curveSpan = distance(from: pivotCurveJoinPoint, to: headCurveJoinPoint)
-        let curveStartTangentOffset = min(max(20, curveSpan * 0.4), recordDiameter * 0.16)
-        let curveEndTangentOffset = min(max(20, curveSpan * 0.4), recordDiameter * 0.16)
-        let curveControlA = CGPoint(
-            x: pivotCurveJoinPoint.x + (pivotStraightDirection.x * curveStartTangentOffset),
-            y: pivotCurveJoinPoint.y + (pivotStraightDirection.y * curveStartTangentOffset)
-        )
-        let curveControlB = CGPoint(
-            x: headCurveJoinPoint.x - (curveEndTangent.x * curveEndTangentOffset),
-            y: headCurveJoinPoint.y - (curveEndTangent.y * curveEndTangentOffset)
-        )
-        let armRearLength = max(26, recordDiameter * 0.09)
-        let armRearPoint = CGPoint(
-            x: pivotPoint.x - (pivotStraightDirection.x * armRearLength),
-            y: pivotPoint.y - (pivotStraightDirection.y * armRearLength)
-        )
-        let counterweightWidth = max(30, recordDiameter * 0.1)
-        let counterweightHeight = max(16, recordDiameter * 0.05)
-        let counterweightPosition = CGPoint(
-            x: pivotPoint.x - (pivotStraightDirection.x * (armRearLength * 0.68)),
-            y: pivotPoint.y - (pivotStraightDirection.y * (armRearLength * 0.68))
-        )
-        let armShaftThickness = max(11, recordDiameter * 0.02)
-        let headHeight = max(14, recordDiameter * 0.042)
-        let debugDotDiameter = max(3, recordDiameter * 0.012)
-        let debugHandleDiameter = max(3, recordDiameter * 0.009)
-        let armPath = tonearmPath(
-            armRear: armRearPoint,
-            pivot: pivotPoint,
-            pivotCurveJoin: pivotCurveJoinPoint,
-            curveControlA: curveControlA,
-            curveControlB: curveControlB,
-            headCurveJoin: headCurveJoinPoint,
-            headMount: headMountPoint
+        let tonearm = resolveTonearmGeometry(for: recordGeometry)
+        let armPath = straightTonearmPath(
+            armRear: tonearm.armRearPoint,
+            pivot: tonearm.pivotPoint,
+            needle: tonearm.needlePoint
         )
         let tonearmScrubGesture = tonearmDragGesture(
-            start: scrubGuide.start,
-            control: orangeCurveControl,
-            end: scrubGuide.end
+            start: tonearm.scrubGuide.start,
+            control: tonearm.orangeCurveControl,
+            end: tonearm.scrubGuide.end
         )
 
         return ZStack {
@@ -211,20 +121,20 @@ private struct TonearmWorkspaceOverlay: View {
                         RadialGradient(
                             colors: [Color(white: 0.82), Color(white: 0.52)],
                             center: .topLeading,
-                            startRadius: holderDiameter * 0.08,
-                            endRadius: holderDiameter * 0.62
+                            startRadius: tonearm.holderDiameter * 0.08,
+                            endRadius: tonearm.holderDiameter * 0.62
                         )
                     )
-                    .frame(width: holderDiameter, height: holderDiameter)
+                    .frame(width: tonearm.holderDiameter, height: tonearm.holderDiameter)
                     .overlay(
                         Circle()
                             .stroke(Color.black.opacity(0.24), lineWidth: max(1.2, recordDiameter * 0.002))
-                            .padding(holderDiameter * 0.08)
+                            .padding(tonearm.holderDiameter * 0.08)
                     )
-                    .position(pivotPoint)
+                    .position(tonearm.pivotPoint)
 
                 armPath
-                .stroke(style: StrokeStyle(lineWidth: armShaftThickness, lineCap: .round, lineJoin: .round))
+                .stroke(style: StrokeStyle(lineWidth: tonearm.armShaftThickness, lineCap: .round, lineJoin: .round))
                 .foregroundStyle(
                     LinearGradient(
                         colors: [Color(white: 0.88), Color(white: 0.64), Color(white: 0.82)],
@@ -238,7 +148,7 @@ private struct TonearmWorkspaceOverlay: View {
                     .stroke(
                         Color.black.opacity(0.18),
                         style: StrokeStyle(
-                            lineWidth: max(1.2, armShaftThickness * 0.14),
+                            lineWidth: max(1.2, tonearm.armShaftThickness * 0.14),
                             lineCap: .round,
                             lineJoin: .round
                         )
@@ -254,15 +164,15 @@ private struct TonearmWorkspaceOverlay: View {
                         )
                     )
                     .frame(
-                        width: counterweightWidth,
-                        height: counterweightHeight
+                        width: tonearm.counterweightWidth,
+                        height: tonearm.counterweightHeight
                     )
                     .overlay(
                         Capsule()
                             .stroke(Color.black.opacity(0.3), lineWidth: 1)
                     )
-                    .rotationEffect(Angle(radians: atan2(pivotStraightDirection.y, pivotStraightDirection.x)))
-                    .position(counterweightPosition)
+                    .rotationEffect(tonearm.armRotation)
+                    .position(tonearm.counterweightPosition)
 
                 Circle()
                     .fill(
@@ -281,9 +191,9 @@ private struct TonearmWorkspaceOverlay: View {
                         Circle()
                             .stroke(Color.black.opacity(0.22), lineWidth: 1)
                     )
-                    .position(pivotPoint)
+                    .position(tonearm.pivotPoint)
 
-                RoundedRectangle(cornerRadius: max(2.5, headHeight * 0.2), style: .continuous)
+                RoundedRectangle(cornerRadius: max(2.5, tonearm.headHeight * 0.2), style: .continuous)
                     .fill(
                         LinearGradient(
                             colors: [Color(white: 0.87), Color(white: 0.66), Color(white: 0.82)],
@@ -291,22 +201,25 @@ private struct TonearmWorkspaceOverlay: View {
                             endPoint: .bottom
                         )
                     )
-                    .frame(width: headWidth, height: headHeight)
+                    .frame(width: tonearm.headWidth, height: tonearm.headHeight)
                     .overlay(
-                        RoundedRectangle(cornerRadius: max(2.5, headHeight * 0.2), style: .continuous)
+                        RoundedRectangle(cornerRadius: max(2.5, tonearm.headHeight * 0.2), style: .continuous)
                             .stroke(Color.black.opacity(0.22), lineWidth: 1)
                     )
-                    .rotationEffect(headAngle)
-                    .position(needlePoint)
+                    .rotationEffect(tonearm.armRotation)
+                    .position(tonearm.needlePoint)
             }
             .allowsHitTesting(false)
 
             Capsule()
                 .fill(Color.clear)
-                .frame(width: max(36, counterweightWidth * 1.2), height: max(24, counterweightHeight * 1.4))
+                .frame(
+                    width: max(36, tonearm.counterweightWidth * 1.2),
+                    height: max(24, tonearm.counterweightHeight * 1.4)
+                )
                 .contentShape(Capsule())
-                .rotationEffect(Angle(radians: atan2(pivotStraightDirection.y, pivotStraightDirection.x)))
-                .position(counterweightPosition)
+                .rotationEffect(tonearm.armRotation)
+                .position(tonearm.counterweightPosition)
                 .onTapGesture {
                     onCounterweightTapped()
                 }
@@ -314,45 +227,43 @@ private struct TonearmWorkspaceOverlay: View {
             Circle()
                 .fill(Color.clear)
                 .frame(
-                    width: max(28, headWidth * 1.3),
-                    height: max(28, headWidth * 1.3)
+                    width: max(28, tonearm.headWidth * 1.3),
+                    height: max(28, tonearm.headWidth * 1.3)
                 )
                 .contentShape(Circle())
-                .position(needlePoint)
+                .position(tonearm.needlePoint)
                 .gesture(tonearmScrubGesture)
 
             if showsDebugGuides {
                 Group {
                     Path { path in
-                        path.move(to: scrubGuide.start)
-                        path.addLine(to: scrubGuide.end)
+                        path.move(to: tonearm.scrubGuide.start)
+                        path.addLine(to: tonearm.scrubGuide.end)
                     }
                     .stroke(Color.red, style: StrokeStyle(lineWidth: max(1, recordDiameter * 0.003), lineCap: .round))
 
                     Circle()
                         .fill(Color.red)
-                        .frame(width: debugDotDiameter, height: debugDotDiameter)
-                        .position(scrubGuide.start)
+                        .frame(width: tonearm.debugDotDiameter, height: tonearm.debugDotDiameter)
+                        .position(tonearm.scrubGuide.start)
 
                     Circle()
                         .fill(Color.red)
-                        .frame(width: debugDotDiameter, height: debugDotDiameter)
-                        .position(scrubGuide.end)
+                        .frame(width: tonearm.debugDotDiameter, height: tonearm.debugDotDiameter)
+                        .position(tonearm.scrubGuide.end)
                 }
                 .allowsHitTesting(false)
 
                 Path { path in
-                    path.move(to: scrubGuide.start)
-                    path.addQuadCurve(to: scrubGuide.end, control: orangeCurveControl)
+                    path.move(to: tonearm.scrubGuide.start)
+                    path.addQuadCurve(to: tonearm.scrubGuide.end, control: tonearm.orangeCurveControl)
                 }
                 .stroke(Color.orange, style: StrokeStyle(lineWidth: max(1, recordDiameter * 0.003), lineCap: .round))
                 .allowsHitTesting(false)
 
                 Path { path in
-                    path.move(to: pivotPoint)
-                    path.addLine(to: pivotCurveJoinPoint)
-                    path.move(to: headCurveJoinPoint)
-                    path.addLine(to: headMountPoint)
+                    path.move(to: tonearm.pivotPoint)
+                    path.addLine(to: tonearm.needlePoint)
                 }
                 .stroke(
                     Color.orange,
@@ -365,31 +276,80 @@ private struct TonearmWorkspaceOverlay: View {
                 )
                 .allowsHitTesting(false)
 
-                Path { path in
-                    path.move(to: pivotCurveJoinPoint)
-                    path.addCurve(to: headCurveJoinPoint, control1: curveControlA, control2: curveControlB)
-                }
-                .stroke(
-                    Color.green,
-                    style: StrokeStyle(lineWidth: max(1, recordDiameter * 0.003), lineCap: .round, lineJoin: .round)
-                )
-                .allowsHitTesting(false)
-
                 Circle()
                     .fill(Color.clear)
-                    .frame(width: max(18, debugHandleDiameter * 2), height: max(18, debugHandleDiameter * 2))
+                    .frame(
+                        width: max(18, tonearm.debugHandleDiameter * 2),
+                        height: max(18, tonearm.debugHandleDiameter * 2)
+                    )
                     .overlay {
                         Circle()
                             .fill(Color.green)
-                            .frame(width: debugHandleDiameter, height: debugHandleDiameter)
+                            .frame(width: tonearm.debugHandleDiameter, height: tonearm.debugHandleDiameter)
                     }
                     .contentShape(Circle())
-                    .position(needlePoint)
+                    .position(tonearm.needlePoint)
                     .gesture(tonearmScrubGesture)
             }
         }
         .frame(width: deckWidth, height: deckHeight, alignment: .topLeading)
         .clipped()
+    }
+
+    private func resolveTonearmGeometry(
+        for recordGeometry: VinylRecordGeometry
+    ) -> TonearmGeometry {
+        let scrubGuide = scrubGuideGeometry(for: recordGeometry)
+        let holderDiameter = recordDiameter * 0.25
+        let pivotPoint = CGPoint(
+            x: deckWidth - recordOriginX - (holderDiameter / 2),
+            y: holderDiameter / 2
+        )
+        let redGuideMidpoint = midpoint(between: scrubGuide.start, and: scrubGuide.end)
+        let redGuideLength = distance(from: scrubGuide.start, to: scrubGuide.end)
+        let midpointAwayFromPivotDirection = normalizedVector(from: pivotPoint, to: redGuideMidpoint)
+        let orangeCurveOffset = max(redGuideLength * Self.scrubCurveDepthFraction, recordDiameter * 0.02)
+        let orangeCurveControl = CGPoint(
+            x: redGuideMidpoint.x + (midpointAwayFromPivotDirection.x * orangeCurveOffset),
+            y: redGuideMidpoint.y + (midpointAwayFromPivotDirection.y * orangeCurveOffset)
+        )
+        let clampedProgress = min(max(progress, 0), 1)
+        let needlePoint = pointOnQuadraticBezier(
+            start: scrubGuide.start,
+            control: orangeCurveControl,
+            end: scrubGuide.end,
+            progress: clampedProgress
+        )
+        let armDirection = normalizedVector(from: pivotPoint, to: needlePoint)
+        let armRearLength = max(26, recordDiameter * 0.09)
+        let armRearPoint = CGPoint(
+            x: pivotPoint.x - (armDirection.x * armRearLength),
+            y: pivotPoint.y - (armDirection.y * armRearLength)
+        )
+        let counterweightWidth = max(30, recordDiameter * 0.1)
+        let counterweightHeight = max(16, recordDiameter * 0.05)
+        let counterweightPosition = CGPoint(
+            x: pivotPoint.x - (armDirection.x * (armRearLength * 0.68)),
+            y: pivotPoint.y - (armDirection.y * (armRearLength * 0.68))
+        )
+
+        return TonearmGeometry(
+            scrubGuide: scrubGuide,
+            pivotPoint: pivotPoint,
+            orangeCurveControl: orangeCurveControl,
+            needlePoint: needlePoint,
+            armDirection: armDirection,
+            armRearPoint: armRearPoint,
+            counterweightWidth: counterweightWidth,
+            counterweightHeight: counterweightHeight,
+            counterweightPosition: counterweightPosition,
+            holderDiameter: holderDiameter,
+            headWidth: max(24, recordDiameter * 0.08),
+            headHeight: max(14, recordDiameter * 0.042),
+            armShaftThickness: max(11, recordDiameter * 0.02),
+            debugDotDiameter: max(3, recordDiameter * 0.012),
+            debugHandleDiameter: max(3, recordDiameter * 0.009)
+        )
     }
 
     private func scrubGuideGeometry(
@@ -406,7 +366,6 @@ private struct TonearmWorkspaceOverlay: View {
             y: center.y + (direction.y * recordGeometry.trackBandInnerRadius)
         )
         return ScrubGuideGeometry(
-            recordCenter: center,
             start: start,
             end: end
         )
@@ -513,50 +472,15 @@ private struct TonearmWorkspaceOverlay: View {
         CGPoint(x: (first.x + second.x) / 2, y: (first.y + second.y) / 2)
     }
 
-    private func normalized(vector: CGPoint, fallback: CGPoint) -> CGPoint {
-        let magnitude = sqrt((vector.x * vector.x) + (vector.y * vector.y))
-        if magnitude > 0.0001 {
-            return CGPoint(x: vector.x / magnitude, y: vector.y / magnitude)
-        }
-
-        let fallbackMagnitude = sqrt((fallback.x * fallback.x) + (fallback.y * fallback.y))
-        if fallbackMagnitude > 0.0001 {
-            return CGPoint(x: fallback.x / fallbackMagnitude, y: fallback.y / fallbackMagnitude)
-        }
-
-        return CGPoint(x: -1, y: 0)
-    }
-
-    private func signedAngle(from unitFrom: CGPoint, to unitTo: CGPoint) -> CGFloat {
-        let dot = (unitFrom.x * unitTo.x) + (unitFrom.y * unitTo.y)
-        let cross = (unitFrom.x * unitTo.y) - (unitFrom.y * unitTo.x)
-        return atan2(cross, dot)
-    }
-
-    private func rotated(unit: CGPoint, by radians: CGFloat) -> CGPoint {
-        let cosTheta = cos(radians)
-        let sinTheta = sin(radians)
-        return CGPoint(
-            x: (unit.x * cosTheta) - (unit.y * sinTheta),
-            y: (unit.x * sinTheta) + (unit.y * cosTheta)
-        )
-    }
-
-    private func tonearmPath(
+    private func straightTonearmPath(
         armRear: CGPoint,
         pivot: CGPoint,
-        pivotCurveJoin: CGPoint,
-        curveControlA: CGPoint,
-        curveControlB: CGPoint,
-        headCurveJoin: CGPoint,
-        headMount: CGPoint
+        needle: CGPoint
     ) -> Path {
         Path { path in
             path.move(to: armRear)
             path.addLine(to: pivot)
-            path.addLine(to: pivotCurveJoin)
-            path.addCurve(to: headCurveJoin, control1: curveControlA, control2: curveControlB)
-            path.addLine(to: headMount)
+            path.addLine(to: needle)
         }
     }
 
@@ -573,19 +497,31 @@ private struct TonearmWorkspaceOverlay: View {
         guard magnitude > 0.0001 else { return CGPoint(x: -1, y: 0) }
         return CGPoint(x: dx / magnitude, y: dy / magnitude)
     }
-
-    private func orientedToward(unit: CGPoint, targetVector: CGPoint) -> CGPoint {
-        let dot = (unit.x * targetVector.x) + (unit.y * targetVector.y)
-        if dot >= 0 {
-            return unit
-        }
-        return CGPoint(x: -unit.x, y: -unit.y)
-    }
-
 }
 
 private struct ScrubGuideGeometry {
-    let recordCenter: CGPoint
     let start: CGPoint
     let end: CGPoint
+}
+
+private struct TonearmGeometry {
+    let scrubGuide: ScrubGuideGeometry
+    let pivotPoint: CGPoint
+    let orangeCurveControl: CGPoint
+    let needlePoint: CGPoint
+    let armDirection: CGPoint
+    let armRearPoint: CGPoint
+    let counterweightWidth: CGFloat
+    let counterweightHeight: CGFloat
+    let counterweightPosition: CGPoint
+    let holderDiameter: CGFloat
+    let headWidth: CGFloat
+    let headHeight: CGFloat
+    let armShaftThickness: CGFloat
+    let debugDotDiameter: CGFloat
+    let debugHandleDiameter: CGFloat
+
+    var armRotation: Angle {
+        Angle(radians: atan2(armDirection.y, armDirection.x))
+    }
 }
