@@ -23,6 +23,7 @@ final class PlaybackController: ObservableObject {
     private static let rampFrameNanoseconds: UInt64 = 16_666_667
     private static let progressFrameNanoseconds: UInt64 = 16_666_667
     private static let movingThreshold: Double = 0.001
+    private static let platterRPM: Double = 33
 
     private enum SpinDownAction {
         case none
@@ -40,6 +41,9 @@ final class PlaybackController: ObservableObject {
     private var baseTurntableSpeed: Double = 0
     private var recordHoldMultiplier: Double = 1
     private var isRecordHoldActive = false
+    private var recordRotationOffsetDegrees: Double = 0
+    private var recordRotationAnchorDate: Date?
+    private var recordRotationAnchorSpeed: Double = 0
 
     init(loader: PlaylistLoader, engine: AudioPlayerEngine) {
         self.loader = loader
@@ -86,6 +90,20 @@ final class PlaybackController: ObservableObject {
         playlist.map { track in
             max(track.duration, 1)
         }
+    }
+
+    func recordRotationDegrees(at now: Date = Date()) -> Double {
+        let wrappedOffset = recordRotationOffsetDegrees.truncatingRemainder(dividingBy: 360)
+        guard
+            let anchorDate = recordRotationAnchorDate,
+            recordRotationAnchorSpeed > 0
+        else {
+            return wrappedOffset
+        }
+
+        let elapsed = max(0, now.timeIntervalSince(anchorDate))
+        let degreesPerSecond = (Self.platterRPM / 60) * 360 * recordRotationAnchorSpeed
+        return (wrappedOffset + (elapsed * degreesPerSecond)).truncatingRemainder(dividingBy: 360)
     }
 
     private var measuredPlaylistProgress: Double {
@@ -288,6 +306,7 @@ final class PlaybackController: ObservableObject {
 
     private func loadPlaylist(from folderURL: URL) {
         stopPlayback(clearSelection: true, withSpinDown: false)
+        resetRecordRotation()
         albumArtImage = nil
         beginSecurityScopedAccess(for: folderURL)
 
@@ -557,8 +576,22 @@ final class PlaybackController: ObservableObject {
     }
 
     private func setTurntableSpeed(_ speed: Double) {
-        baseTurntableSpeed = min(max(speed, 0), 1)
+        let clampedSpeed = min(max(speed, 0), 1)
+        syncRecordRotation(to: clampedSpeed, now: Date())
+        baseTurntableSpeed = clampedSpeed
         applyTurntableState()
+    }
+
+    private func syncRecordRotation(to targetSpeed: Double, now: Date) {
+        recordRotationOffsetDegrees = recordRotationDegrees(at: now)
+        recordRotationAnchorSpeed = targetSpeed
+        recordRotationAnchorDate = targetSpeed > 0 ? now : nil
+    }
+
+    private func resetRecordRotation() {
+        recordRotationOffsetDegrees = 0
+        recordRotationAnchorDate = nil
+        recordRotationAnchorSpeed = 0
     }
 
     private func applyTurntableState() {

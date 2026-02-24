@@ -4,19 +4,14 @@ struct RecordAreaPlaceholderView: View {
     let size: CGFloat
     @ObservedObject var playback: PlaybackController
 
-    private static let platterRPM: Double = 33
     private let layout = VinylRecordLayout()
     private let bufferBandColor = Color(white: 0.11)
-
-    @State private var rotationAnchorDate: Date?
-    @State private var anchoredTurntableSpeed: Double = 0
-    @State private var persistedRotationDegrees: Double = 0
 
     var body: some View {
         let geometry = layout.resolved(forDiameter: size)
 
         TimelineView(.animation(minimumInterval: 1.0 / 60.0, paused: playback.turntableSpeed <= 0.0001)) { context in
-            let rotationDegrees = rotationDegrees(at: context.date)
+            let rotationDegrees = playback.recordRotationDegrees(at: context.date)
             let centerPegDiameter = playback.hasPlaylist ? max(5, size * 0.02) : max(5, size * 0.018)
 
             ZStack {
@@ -28,12 +23,6 @@ struct RecordAreaPlaceholderView: View {
             }
         }
         .frame(width: size, height: size)
-        .onAppear {
-            syncRotationState(targetSpeed: playback.turntableSpeed, now: Date())
-        }
-        .onChange(of: playback.turntableSpeed) { _, speed in
-            syncRotationState(targetSpeed: speed, now: Date())
-        }
     }
 
     @ViewBuilder
@@ -215,26 +204,6 @@ struct RecordAreaPlaceholderView: View {
         }
     }
 
-    private func syncRotationState(targetSpeed: Double, now: Date) {
-        persistedRotationDegrees = rotationDegrees(at: now)
-        let clampedSpeed = min(max(targetSpeed, 0), 1)
-        anchoredTurntableSpeed = clampedSpeed
-        rotationAnchorDate = clampedSpeed > 0 ? now : nil
-    }
-
-    private func rotationDegrees(at now: Date) -> Double {
-        let wrappedPersistedDegrees = persistedRotationDegrees.truncatingRemainder(dividingBy: 360)
-        guard
-            let rotationAnchorDate,
-            anchoredTurntableSpeed > 0
-        else {
-            return wrappedPersistedDegrees
-        }
-
-        let elapsed = max(0, now.timeIntervalSince(rotationAnchorDate))
-        let degreesPerSecond = (Self.platterRPM / 60) * 360 * anchoredTurntableSpeed
-        return (wrappedPersistedDegrees + (elapsed * degreesPerSecond)).truncatingRemainder(dividingBy: 360)
-    }
 }
 
 struct VinylRecordLayout {
