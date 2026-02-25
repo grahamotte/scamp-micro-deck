@@ -36,6 +36,7 @@ enum RecordTheme: String, CaseIterable, Identifiable {
     case yellow
     case red
     case pinkSplatter
+    case blueSplatter
 
     var id: String { rawValue }
 
@@ -49,6 +50,8 @@ enum RecordTheme: String, CaseIterable, Identifiable {
             return "Red"
         case .pinkSplatter:
             return "Pink Splatter"
+        case .blueSplatter:
+            return "Blue Splatter"
         }
     }
 
@@ -62,6 +65,8 @@ enum RecordTheme: String, CaseIterable, Identifiable {
             return RedRecordTheme.palette
         case .pinkSplatter:
             return PinkSplatterRecordTheme.palette
+        case .blueSplatter:
+            return BlueSplatterRecordTheme.palette
         }
     }
 }
