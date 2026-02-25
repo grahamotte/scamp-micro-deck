@@ -47,6 +47,20 @@ struct ScampApp: App {
         .windowStyle(.hiddenTitleBar)
         .commands {
             CommandMenu("Theme") {
+                Button("Randomize Themes") {
+                    if let tableTheme = TableTheme.allCases.randomElement() {
+                        selectedTableTheme.wrappedValue = tableTheme
+                    }
+                    if let recordTheme = RecordTheme.allCases.randomElement() {
+                        selectedRecordTheme.wrappedValue = recordTheme
+                    }
+                    if let controlsTheme = ControlsTheme.allCases.randomElement() {
+                        selectedControlsTheme.wrappedValue = controlsTheme
+                    }
+                }
+
+                Divider()
+
                 Picker("Table Theme", selection: selectedTableTheme) {
                     ForEach(TableTheme.allCases) { theme in
                         Text(theme.displayName)
