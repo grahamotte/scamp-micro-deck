@@ -1,6 +1,7 @@
 import SwiftUI
 
-struct SilverControlsTheme {
+struct SilverControlsTheme: ControlsThemeDefinition {
+    static let displayName = "Silver"
     private static let controlButtonDiameter: CGFloat = 40
     private static let controlButtonIconSize: CGFloat = 11
 

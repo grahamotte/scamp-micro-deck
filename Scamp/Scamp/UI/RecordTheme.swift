@@ -1,5 +1,10 @@
 import SwiftUI
 
+protocol RecordThemeDefinition {
+    static var displayName: String { get }
+    static var palette: RecordThemePalette { get }
+}
+
 struct RecordThemeSurfaceOverlay {
     let makeView: (_ size: CGFloat) -> AnyView
 
@@ -40,33 +45,26 @@ enum RecordTheme: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
-    var displayName: String {
+    private var definition: any RecordThemeDefinition.Type {
         switch self {
         case .black:
-            return "Black"
+            return BlackRecordTheme.self
         case .yellow:
-            return "Yellow"
+            return YellowRecordTheme.self
         case .red:
-            return "Red"
+            return RedRecordTheme.self
         case .pinkSplatter:
-            return "Pink Splatter"
+            return PinkSplatterRecordTheme.self
         case .blueSplatter:
-            return "Blue Splatter"
+            return BlueSplatterRecordTheme.self
         }
     }
 
+    var displayName: String {
+        definition.displayName
+    }
+
     var palette: RecordThemePalette {
-        switch self {
-        case .black:
-            return BlackRecordTheme.palette
-        case .yellow:
-            return YellowRecordTheme.palette
-        case .red:
-            return RedRecordTheme.palette
-        case .pinkSplatter:
-            return PinkSplatterRecordTheme.palette
-        case .blueSplatter:
-            return BlueSplatterRecordTheme.palette
-        }
+        definition.palette
     }
 }

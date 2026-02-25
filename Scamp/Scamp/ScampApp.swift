@@ -9,12 +9,7 @@ struct ScampApp: App {
 
     private var selectedTableTheme: Binding<TableTheme> {
         Binding(
-            get: {
-                let resolvedThemeRawValue = selectedTableThemeRawValue == "silver"
-                    ? TableTheme.frostedGlass.rawValue
-                    : selectedTableThemeRawValue
-                return TableTheme(rawValue: resolvedThemeRawValue) ?? .wood
-            },
+            get: { TableTheme(rawValue: selectedTableThemeRawValue) ?? .wood },
             set: { selectedTableThemeRawValue = $0.rawValue }
         )
     }

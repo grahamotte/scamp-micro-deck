@@ -1,5 +1,11 @@
 import SwiftUI
 
+struct WoodTableTheme: TableThemeDefinition {
+    static let displayName = "Wood"
+    static let usesWindowTranslucency = false
+    static var background: AnyView { AnyView(WoodGrainBackground()) }
+}
+
 struct WoodGrainBackground: View {
     var body: some View {
         ZStack {

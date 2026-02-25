@@ -1,27 +1,39 @@
 import SwiftUI
 
+protocol TableThemeDefinition {
+    static var displayName: String { get }
+    static var usesWindowTranslucency: Bool { get }
+    static var background: AnyView { get }
+}
+
 enum TableTheme: String, CaseIterable, Identifiable {
     case wood
     case frostedGlass
+    case rainbow
 
     var id: String { rawValue }
 
-    var displayName: String {
+    private var definition: any TableThemeDefinition.Type {
         switch self {
         case .wood:
-            return "Wood"
+            return WoodTableTheme.self
         case .frostedGlass:
-            return "Frosted Glass"
+            return FrostedGlassTableTheme.self
+        case .rainbow:
+            return RainbowTableTheme.self
         }
     }
 
+    var displayName: String {
+        definition.displayName
+    }
+
     var usesWindowTranslucency: Bool {
-        switch self {
-        case .wood:
-            return false
-        case .frostedGlass:
-            return true
-        }
+        definition.usesWindowTranslucency
+    }
+
+    var background: AnyView {
+        definition.background
     }
 }
 
@@ -29,11 +41,6 @@ struct TableThemeBackground: View {
     let theme: TableTheme
 
     var body: some View {
-        switch theme {
-        case .wood:
-            WoodGrainBackground()
-        case .frostedGlass:
-            FrostedGlassTableBackground()
-        }
+        theme.background
     }
 }

@@ -1,6 +1,7 @@
 import SwiftUI
 
-struct BlackRecordTheme {
+struct BlackRecordTheme: RecordThemeDefinition {
+    static let displayName = "Black"
     static let palette = RecordThemePalette(
         backgroundColor: Color.black,
         trackDividerColor: Color(white: 0.10),

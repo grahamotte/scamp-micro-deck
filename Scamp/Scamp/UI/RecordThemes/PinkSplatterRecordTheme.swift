@@ -1,6 +1,7 @@
 import SwiftUI
 
-struct PinkSplatterRecordTheme {
+struct PinkSplatterRecordTheme: RecordThemeDefinition {
+    static let displayName = "Pink Splatter"
     private static let primaryColor = Color(red: 0.99, green: 0.18, blue: 0.50)
     private static let secondaryColor = Color(red: 0.94, green: 0.43, blue: 0.67)
     private static let streakCount = 280

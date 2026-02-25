@@ -1,6 +1,7 @@
 import SwiftUI
 
-struct BlueSplatterRecordTheme {
+struct BlueSplatterRecordTheme: RecordThemeDefinition {
+    static let displayName = "Blue Splatter"
     private static let primaryColor = Color(red: 0.15, green: 0.84, blue: 0.92)
     private static let secondaryColor = Color(red: 0.03, green: 0.46, blue: 0.63)
 

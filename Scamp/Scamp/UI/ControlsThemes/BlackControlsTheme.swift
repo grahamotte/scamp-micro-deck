@@ -1,6 +1,7 @@
 import SwiftUI
 
-struct BlackControlsTheme {
+struct BlackControlsTheme: ControlsThemeDefinition {
+    static let displayName = "Black"
     private static let controlButtonWidth: CGFloat = 44
     private static let controlButtonHeight: CGFloat = 36
     private static let controlButtonCornerRadius: CGFloat = 7

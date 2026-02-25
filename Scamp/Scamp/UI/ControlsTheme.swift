@@ -1,5 +1,10 @@
 import SwiftUI
 
+protocol ControlsThemeDefinition {
+    static var displayName: String { get }
+    static var palette: ControlsThemePalette { get }
+}
+
 struct TonearmThemeGeometry {
     let recordDiameter: CGFloat
     let holderDiameter: CGFloat
@@ -114,21 +119,20 @@ enum ControlsTheme: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
-    var displayName: String {
+    private var definition: any ControlsThemeDefinition.Type {
         switch self {
         case .silver:
-            return "Silver"
+            return SilverControlsTheme.self
         case .black:
-            return "Black"
+            return BlackControlsTheme.self
         }
     }
 
+    var displayName: String {
+        definition.displayName
+    }
+
     var palette: ControlsThemePalette {
-        switch self {
-        case .silver:
-            return SilverControlsTheme.palette
-        case .black:
-            return BlackControlsTheme.palette
-        }
+        definition.palette
     }
 }
