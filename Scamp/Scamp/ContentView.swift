@@ -3,6 +3,7 @@ import SwiftUI
 struct ContentView: View {
     @ObservedObject var playback: PlaybackController
     @Binding var tableTheme: TableTheme
+    @Binding var recordTheme: RecordTheme
     @State private var columnVisibility: NavigationSplitViewVisibility = .detailOnly
 
     private var nowPlayingTitle: String {
@@ -14,7 +15,11 @@ struct ContentView: View {
             EmptyView()
                 .navigationSplitViewColumnWidth(min: 0, ideal: 0, max: 0)
         } detail: {
-            DeckWorkspaceView(playback: playback, tableTheme: $tableTheme)
+            DeckWorkspaceView(
+                playback: playback,
+                tableTheme: $tableTheme,
+                recordTheme: $recordTheme
+            )
         }
         .navigationSplitViewStyle(.balanced)
         .containerBackground(Color.clear, for: .window)
@@ -29,6 +34,7 @@ struct ContentView: View {
 #Preview {
     ContentView(
         playback: PlaybackController(),
-        tableTheme: .constant(.wood)
+        tableTheme: .constant(.wood),
+        recordTheme: .constant(.black)
     )
 }

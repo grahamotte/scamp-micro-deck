@@ -572,13 +572,14 @@ final class PlaybackController: ObservableObject {
 
     private func setRecordHoldMultiplier(_ multiplier: Double) {
         recordHoldMultiplier = min(max(multiplier, Self.recordHoldSlowMultiplier), 1)
+        syncRecordRotation(to: effectiveTurntableSpeed, now: Date())
         applyTurntableState()
     }
 
     private func setTurntableSpeed(_ speed: Double) {
         let clampedSpeed = min(max(speed, 0), 1)
-        syncRecordRotation(to: clampedSpeed, now: Date())
         baseTurntableSpeed = clampedSpeed
+        syncRecordRotation(to: effectiveTurntableSpeed, now: Date())
         applyTurntableState()
     }
 

@@ -3,6 +3,7 @@ import SwiftUI
 struct DeckWorkspaceView: View {
     @ObservedObject var playback: PlaybackController
     @Binding var tableTheme: TableTheme
+    @Binding var recordTheme: RecordTheme
     @State private var scrubDragProgress: Double?
     @State private var showsTonearmDebugGuides = false
     @State private var isRecordHoldGestureActive = false
@@ -24,20 +25,22 @@ struct DeckWorkspaceView: View {
                             Color.clear
                                 .frame(width: chromeInset)
 
-                            RecordAreaPlaceholderView(size: squareSize, playback: playback)
-                                .contentShape(Circle())
-                                .gesture(
-                                    DragGesture(minimumDistance: 0)
-                                        .onChanged { _ in
-                                            guard !isRecordHoldGestureActive else { return }
-                                            isRecordHoldGestureActive = true
-                                            playback.setRecordHoldActive(true)
-                                        }
-                                        .onEnded { _ in
-                                            isRecordHoldGestureActive = false
-                                            playback.setRecordHoldActive(false)
-                                        }
-                                )
+                            RecordAreaPlaceholderView(
+                                size: squareSize,
+                                playback: playback,
+                                theme: recordTheme
+                            )
+                            .contentShape(Circle())
+                            .onLongPressGesture(
+                                minimumDuration: 0,
+                                maximumDistance: .greatestFiniteMagnitude,
+                                pressing: { isPressing in
+                                    guard isRecordHoldGestureActive != isPressing else { return }
+                                    isRecordHoldGestureActive = isPressing
+                                    playback.setRecordHoldActive(isPressing)
+                                },
+                                perform: {}
+                            )
 
                             ControlsAreaView(
                                 width: controlsWidth,

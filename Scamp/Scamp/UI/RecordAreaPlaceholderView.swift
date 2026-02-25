@@ -3,9 +3,12 @@ import SwiftUI
 struct RecordAreaPlaceholderView: View {
     let size: CGFloat
     @ObservedObject var playback: PlaybackController
+    let theme: RecordTheme
 
     private let layout = VinylRecordLayout()
-    private let bufferBandColor = Color(white: 0.11)
+    private let unloadedBackdropColor = Color(white: 0.02)
+    private let unloadedBackdropTrackColor = Color(white: 0.12)
+    private var palette: RecordThemePalette { theme.palette }
 
     var body: some View {
         let geometry = layout.resolved(forDiameter: size)
@@ -37,22 +40,31 @@ struct RecordAreaPlaceholderView: View {
     private func loadedRecordSurface(for geometry: VinylRecordGeometry) -> some View {
         ZStack {
             Circle()
-                .fill(
+                .fill(palette.recordColor)
+                .overlay {
                     RadialGradient(
-                        colors: [Color(white: 0.18), Color(white: 0.07)],
+                        colors: [Color.clear, Color.black.opacity(0.04)],
                         center: .center,
-                        startRadius: size * 0.02,
+                        startRadius: size * 0.01,
                         endRadius: size * 0.54
                     )
-                )
+                }
+                .overlay {
+                    LinearGradient(
+                        colors: [Color.white.opacity(0.01), Color.clear],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                }
+                .clipShape(Circle())
 
             Circle()
-                .stroke(Color.white.opacity(0.14), lineWidth: max(1, size * 0.0024))
+                .stroke(palette.trackBufferColor.opacity(0.32), lineWidth: max(1, size * 0.0024))
                 .padding(size * 0.003)
 
             Circle()
                 .stroke(
-                    bufferBandColor,
+                    palette.trackBufferColor,
                     style: StrokeStyle(lineWidth: max(1, geometry.outerBufferWidth))
                 )
                 .frame(
@@ -62,7 +74,7 @@ struct RecordAreaPlaceholderView: View {
 
             Circle()
                 .stroke(
-                    Color.black.opacity(0.76),
+                    palette.recordColor.opacity(0.96),
                     style: StrokeStyle(lineWidth: geometry.trackBandWidth, lineCap: .round)
                 )
                 .frame(width: geometry.trackBandMidRadius * 2, height: geometry.trackBandMidRadius * 2)
@@ -72,19 +84,22 @@ struct RecordAreaPlaceholderView: View {
                 let trackBandWidth = geometry.trackBandRadiusBounds.upperBound - geometry.trackBandRadiusBounds.lowerBound
                 let grooveRadius = geometry.trackBandRadiusBounds.upperBound - (trackBandWidth * fraction)
                 Circle()
-                    .stroke(Color.white.opacity(grooveIndex.isMultiple(of: 6) ? 0.024 : 0.012), lineWidth: 0.55)
+                    .stroke(
+                        palette.trackBufferColor.opacity(grooveIndex.isMultiple(of: 6) ? 0.5 : 0.22),
+                        lineWidth: 0.55
+                    )
                     .frame(width: grooveRadius * 2, height: grooveRadius * 2)
             }
 
             ForEach(Array(trackDivisionRadii(in: geometry).enumerated()), id: \.offset) { _, radius in
                 Circle()
-                    .stroke(Color.white.opacity(0.085), lineWidth: max(0.6, size * 0.0018))
+                    .stroke(palette.trackBufferColor.opacity(0.6), lineWidth: max(0.6, size * 0.0018))
                     .frame(width: radius * 2, height: radius * 2)
             }
 
             Circle()
                 .stroke(
-                    bufferBandColor,
+                    palette.trackBufferColor,
                     style: StrokeStyle(lineWidth: max(1, geometry.innerBufferWidth))
                 )
                 .frame(
@@ -93,18 +108,20 @@ struct RecordAreaPlaceholderView: View {
                 )
 
             Circle()
-                .fill(
+                .fill(palette.recordColor)
+                .overlay {
                     LinearGradient(
-                        colors: [Color(red: 0.66, green: 0.24, blue: 0.2), Color(red: 0.35, green: 0.08, blue: 0.08)],
+                        colors: [Color.white.opacity(0.01), Color.black.opacity(0.04)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
-                )
+                }
+                .clipShape(Circle())
                 .frame(width: geometry.labelRadius * 2, height: geometry.labelRadius * 2)
                 .overlay {
                     if playback.albumArtImage == nil {
                         Circle()
-                            .stroke(Color.white.opacity(0.42), lineWidth: max(1, size * 0.0025))
+                            .stroke(palette.trackBufferColor.opacity(0.72), lineWidth: max(1, size * 0.0025))
                     }
                 }
                 .overlay {
@@ -130,18 +147,20 @@ struct RecordAreaPlaceholderView: View {
     private var emptyRecordSurface: some View {
         ZStack {
             Circle()
-                .fill(
+                .fill(unloadedBackdropColor)
+                .overlay {
                     RadialGradient(
-                        colors: [Color(white: 0.17), Color(white: 0.08)],
+                        colors: [Color.white.opacity(0.06), Color.black.opacity(0.22)],
                         center: .center,
                         startRadius: size * 0.01,
                         endRadius: size * 0.44
                     )
-                )
+                }
+                .clipShape(Circle())
                 .frame(width: size * 0.92, height: size * 0.92)
                 .overlay(
                     Circle()
-                        .stroke(Color.white.opacity(0.08), lineWidth: max(1, size * 0.0023))
+                        .stroke(unloadedBackdropTrackColor.opacity(0.34), lineWidth: max(1, size * 0.0023))
                 )
 
         }
@@ -153,7 +172,7 @@ struct RecordAreaPlaceholderView: View {
 
         return ZStack {
             Circle()
-                .stroke(bufferBandColor.opacity(0.94), lineWidth: bufferRingWidth)
+                .stroke(palette.trackBufferColor.opacity(0.94), lineWidth: bufferRingWidth)
                 .frame(width: bufferRingDiameter, height: bufferRingDiameter)
                 .overlay(
                     Circle()
