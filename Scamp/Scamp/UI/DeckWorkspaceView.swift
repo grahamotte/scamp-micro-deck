@@ -4,6 +4,7 @@ struct DeckWorkspaceView: View {
     @ObservedObject var playback: PlaybackController
     @Binding var tableTheme: TableTheme
     @Binding var recordTheme: RecordTheme
+    @Binding var controlsTheme: ControlsTheme
     @State private var scrubDragProgress: Double?
     @State private var showsTonearmDebugGuides = false
     @State private var isRecordHoldGestureActive = false
@@ -46,6 +47,7 @@ struct DeckWorkspaceView: View {
                                 width: controlsWidth,
                                 height: squareSize,
                                 edgeInset: chromeInset,
+                                controlsTheme: controlsTheme,
                                 playback: playback
                             )
                         }
@@ -55,6 +57,7 @@ struct DeckWorkspaceView: View {
                             deckHeight: squareSize,
                             recordOriginX: chromeInset,
                             recordDiameter: squareSize,
+                            controlsTheme: controlsTheme,
                             progress: scrubProgress,
                             showsDebugGuides: showsTonearmDebugGuides,
                             onCounterweightTapped: {
@@ -93,6 +96,7 @@ private struct TonearmWorkspaceOverlay: View {
     let deckHeight: CGFloat
     let recordOriginX: CGFloat
     let recordDiameter: CGFloat
+    let controlsTheme: ControlsTheme
     let progress: Double
     let showsDebugGuides: Bool
     let onCounterweightTapped: () -> Void
@@ -102,6 +106,7 @@ private struct TonearmWorkspaceOverlay: View {
     private static let scrubGuideAngleDegrees: Double = -33
     private static let scrubCurveDepthFraction: CGFloat = 0.12
     private let layout = VinylRecordLayout()
+    private var palette: ControlsThemePalette { controlsTheme.palette }
 
     var body: some View {
         let recordGeometry = layout.resolved(forDiameter: recordDiameter)
@@ -111,6 +116,15 @@ private struct TonearmWorkspaceOverlay: View {
             pivot: tonearm.pivotPoint,
             needle: tonearm.needlePoint
         )
+        let tonearmThemeGeometry = TonearmThemeGeometry(
+            recordDiameter: recordDiameter,
+            holderDiameter: tonearm.holderDiameter,
+            headWidth: tonearm.headWidth,
+            headHeight: tonearm.headHeight,
+            counterweightWidth: tonearm.counterweightWidth,
+            counterweightHeight: tonearm.counterweightHeight,
+            armShaftThickness: tonearm.armShaftThickness
+        )
         let tonearmScrubGesture = tonearmDragGesture(
             start: tonearm.scrubGuide.start,
             control: tonearm.orangeCurveControl,
@@ -119,96 +133,23 @@ private struct TonearmWorkspaceOverlay: View {
 
         return ZStack {
             Group {
-                Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [Color(white: 0.82), Color(white: 0.52)],
-                            center: .topLeading,
-                            startRadius: tonearm.holderDiameter * 0.08,
-                            endRadius: tonearm.holderDiameter * 0.62
-                        )
-                    )
-                    .frame(width: tonearm.holderDiameter, height: tonearm.holderDiameter)
-                    .overlay(
-                        Circle()
-                            .stroke(Color.black.opacity(0.24), lineWidth: max(1.2, recordDiameter * 0.002))
-                            .padding(tonearm.holderDiameter * 0.08)
-                    )
+                palette.tonearmHolder
+                    .makeView(tonearmThemeGeometry)
                     .position(tonearm.pivotPoint)
 
-                armPath
-                .stroke(style: StrokeStyle(lineWidth: tonearm.armShaftThickness, lineCap: .round, lineJoin: .round))
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [Color(white: 0.88), Color(white: 0.64), Color(white: 0.82)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-                .shadow(color: .black.opacity(0.28), radius: 4, x: 0, y: 2)
-                .overlay {
-                    armPath
-                    .stroke(
-                        Color.black.opacity(0.18),
-                        style: StrokeStyle(
-                            lineWidth: max(1.2, tonearm.armShaftThickness * 0.14),
-                            lineCap: .round,
-                            lineJoin: .round
-                        )
-                    )
-                }
+                palette.tonearmArm.makeView(armPath, tonearmThemeGeometry)
 
-                Capsule()
-                    .fill(
-                        LinearGradient(
-                            colors: [Color(white: 0.74), Color(white: 0.54)],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                    .frame(
-                        width: tonearm.counterweightWidth,
-                        height: tonearm.counterweightHeight
-                    )
-                    .overlay(
-                        Capsule()
-                            .stroke(Color.black.opacity(0.3), lineWidth: 1)
-                    )
+                palette.tonearmCounterweight
+                    .makeView(tonearmThemeGeometry)
                     .rotationEffect(tonearm.armRotation)
                     .position(tonearm.counterweightPosition)
 
-                Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [Color(white: 0.9), Color(white: 0.58)],
-                            center: .topLeading,
-                            startRadius: 2,
-                            endRadius: max(8, recordDiameter * 0.022)
-                        )
-                    )
-                    .frame(
-                        width: max(14, recordDiameter * 0.05),
-                        height: max(14, recordDiameter * 0.05)
-                    )
-                    .overlay(
-                        Circle()
-                            .stroke(Color.black.opacity(0.22), lineWidth: 1)
-                    )
+                palette.tonearmPeg
+                    .makeView(tonearmThemeGeometry)
                     .position(tonearm.pivotPoint)
 
-                RoundedRectangle(cornerRadius: max(2.5, tonearm.headHeight * 0.2), style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [Color(white: 0.87), Color(white: 0.66), Color(white: 0.82)],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                    .frame(width: tonearm.headWidth, height: tonearm.headHeight)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: max(2.5, tonearm.headHeight * 0.2), style: .continuous)
-                            .stroke(Color.black.opacity(0.22), lineWidth: 1)
-                    )
+                palette.tonearmHead
+                    .makeView(tonearmThemeGeometry)
                     .rotationEffect(tonearm.armRotation)
                     .position(tonearm.needlePoint)
             }

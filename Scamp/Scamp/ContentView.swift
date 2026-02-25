@@ -4,6 +4,7 @@ struct ContentView: View {
     @ObservedObject var playback: PlaybackController
     @Binding var tableTheme: TableTheme
     @Binding var recordTheme: RecordTheme
+    @Binding var controlsTheme: ControlsTheme
     @State private var columnVisibility: NavigationSplitViewVisibility = .detailOnly
 
     var body: some View {
@@ -14,7 +15,8 @@ struct ContentView: View {
             DeckWorkspaceView(
                 playback: playback,
                 tableTheme: $tableTheme,
-                recordTheme: $recordTheme
+                recordTheme: $recordTheme,
+                controlsTheme: $controlsTheme
             )
         }
         .navigationSplitViewStyle(.balanced)
@@ -30,6 +32,7 @@ struct ContentView: View {
     ContentView(
         playback: PlaybackController(),
         tableTheme: .constant(.wood),
-        recordTheme: .constant(.black)
+        recordTheme: .constant(.black),
+        controlsTheme: .constant(.silver)
     )
 }

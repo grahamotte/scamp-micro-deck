@@ -5,6 +5,7 @@ struct ScampApp: App {
     @StateObject private var playback = PlaybackController()
     @AppStorage("selectedTableTheme") private var selectedTableThemeRawValue = TableTheme.wood.rawValue
     @AppStorage("selectedRecordTheme") private var selectedRecordThemeRawValue = RecordTheme.black.rawValue
+    @AppStorage("selectedControlsTheme") private var selectedControlsThemeRawValue = ControlsTheme.silver.rawValue
 
     private var selectedTableTheme: Binding<TableTheme> {
         Binding(
@@ -25,12 +26,20 @@ struct ScampApp: App {
         )
     }
 
+    private var selectedControlsTheme: Binding<ControlsTheme> {
+        Binding(
+            get: { ControlsTheme(rawValue: selectedControlsThemeRawValue) ?? .silver },
+            set: { selectedControlsThemeRawValue = $0.rawValue }
+        )
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView(
                 playback: playback,
                 tableTheme: selectedTableTheme,
-                recordTheme: selectedRecordTheme
+                recordTheme: selectedRecordTheme,
+                controlsTheme: selectedControlsTheme
             )
         }
         .defaultSize(width: ScampLayout.windowWidth, height: ScampLayout.windowHeight)
@@ -50,6 +59,16 @@ struct ScampApp: App {
 
                 Picker("Record Theme", selection: selectedRecordTheme) {
                     ForEach(RecordTheme.allCases) { theme in
+                        Text(theme.displayName)
+                            .tag(theme)
+                    }
+                }
+                .pickerStyle(.inline)
+
+                Divider()
+
+                Picker("Controls Theme", selection: selectedControlsTheme) {
+                    ForEach(ControlsTheme.allCases) { theme in
                         Text(theme.displayName)
                             .tag(theme)
                     }

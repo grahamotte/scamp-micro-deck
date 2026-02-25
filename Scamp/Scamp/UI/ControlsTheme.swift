@@ -1,0 +1,129 @@
+import SwiftUI
+
+struct TonearmThemeGeometry {
+    let recordDiameter: CGFloat
+    let holderDiameter: CGFloat
+    let headWidth: CGFloat
+    let headHeight: CGFloat
+    let counterweightWidth: CGFloat
+    let counterweightHeight: CGFloat
+    let armShaftThickness: CGFloat
+}
+
+struct TonearmHeadThemePart {
+    let makeView: (_ geometry: TonearmThemeGeometry) -> AnyView
+
+    init<V: View>(
+        @ViewBuilder makeView: @escaping (_ geometry: TonearmThemeGeometry) -> V
+    ) {
+        self.makeView = { geometry in
+            AnyView(makeView(geometry))
+        }
+    }
+}
+
+struct TonearmArmThemePart {
+    let makeView: (_ armPath: Path, _ geometry: TonearmThemeGeometry) -> AnyView
+
+    init<V: View>(
+        @ViewBuilder makeView: @escaping (_ armPath: Path, _ geometry: TonearmThemeGeometry) -> V
+    ) {
+        self.makeView = { armPath, geometry in
+            AnyView(makeView(armPath, geometry))
+        }
+    }
+}
+
+struct TonearmPegThemePart {
+    let makeView: (_ geometry: TonearmThemeGeometry) -> AnyView
+
+    init<V: View>(
+        @ViewBuilder makeView: @escaping (_ geometry: TonearmThemeGeometry) -> V
+    ) {
+        self.makeView = { geometry in
+            AnyView(makeView(geometry))
+        }
+    }
+}
+
+struct TonearmHolderThemePart {
+    let makeView: (_ geometry: TonearmThemeGeometry) -> AnyView
+
+    init<V: View>(
+        @ViewBuilder makeView: @escaping (_ geometry: TonearmThemeGeometry) -> V
+    ) {
+        self.makeView = { geometry in
+            AnyView(makeView(geometry))
+        }
+    }
+}
+
+struct TonearmCounterweightThemePart {
+    let makeView: (_ geometry: TonearmThemeGeometry) -> AnyView
+
+    init<V: View>(
+        @ViewBuilder makeView: @escaping (_ geometry: TonearmThemeGeometry) -> V
+    ) {
+        self.makeView = { geometry in
+            AnyView(makeView(geometry))
+        }
+    }
+}
+
+struct ControlsThemeTransportButtons {
+    typealias ButtonAction = () -> Void
+
+    let makeEjectButton: (_ action: @escaping ButtonAction) -> AnyView
+    let makePreviousButton: (_ action: @escaping ButtonAction) -> AnyView
+    let makePlayPauseButton: (_ action: @escaping ButtonAction) -> AnyView
+    let makeNextButton: (_ action: @escaping ButtonAction) -> AnyView
+
+    init<E: View, P: View, T: View, N: View>(
+        @ViewBuilder makeEjectButton: @escaping (_ action: @escaping ButtonAction) -> E,
+        @ViewBuilder makePreviousButton: @escaping (_ action: @escaping ButtonAction) -> P,
+        @ViewBuilder makePlayPauseButton: @escaping (_ action: @escaping ButtonAction) -> T,
+        @ViewBuilder makeNextButton: @escaping (_ action: @escaping ButtonAction) -> N
+    ) {
+        self.makeEjectButton = { action in
+            AnyView(makeEjectButton(action))
+        }
+        self.makePreviousButton = { action in
+            AnyView(makePreviousButton(action))
+        }
+        self.makePlayPauseButton = { action in
+            AnyView(makePlayPauseButton(action))
+        }
+        self.makeNextButton = { action in
+            AnyView(makeNextButton(action))
+        }
+    }
+}
+
+struct ControlsThemePalette {
+    let tonearmHead: TonearmHeadThemePart
+    let tonearmArm: TonearmArmThemePart
+    let tonearmPeg: TonearmPegThemePart
+    let tonearmHolder: TonearmHolderThemePart
+    let tonearmCounterweight: TonearmCounterweightThemePart
+    let transportButtons: ControlsThemeTransportButtons
+}
+
+enum ControlsTheme: String, CaseIterable, Identifiable {
+    case silver
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .silver:
+            return "Silver"
+        }
+    }
+
+    var palette: ControlsThemePalette {
+        switch self {
+        case .silver:
+            return SilverControlsTheme.palette
+        }
+    }
+}
