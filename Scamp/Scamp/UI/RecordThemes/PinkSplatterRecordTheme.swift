@@ -165,8 +165,9 @@ struct PinkSplatterRecordTheme {
     }
 
     static let palette = RecordThemePalette(
-        recordColor: Color(red: 0.97, green: 0.92, blue: 0.89),
-        trackBufferColor: Color(red: 0.91, green: 0.72, blue: 0.79),
+        backgroundColor: Color(red: 0.97, green: 0.92, blue: 0.89),
+        trackDividerColor: Color(red: 0.91, green: 0.72, blue: 0.79),
+        bufferColor: Color(red: 0.91, green: 0.72, blue: 0.79),
         surfaceOverlay: RecordThemeSurfaceOverlay { size in
             OverlayView(size: size)
         }

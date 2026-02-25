@@ -13,17 +13,20 @@ struct RecordThemeSurfaceOverlay {
 }
 
 struct RecordThemePalette {
-    let recordColor: Color
-    let trackBufferColor: Color
+    let backgroundColor: Color
+    let trackDividerColor: Color
+    let bufferColor: Color
     let surfaceOverlay: RecordThemeSurfaceOverlay?
 
     init(
-        recordColor: Color,
-        trackBufferColor: Color,
+        backgroundColor: Color,
+        trackDividerColor: Color,
+        bufferColor: Color,
         surfaceOverlay: RecordThemeSurfaceOverlay? = nil
     ) {
-        self.recordColor = recordColor
-        self.trackBufferColor = trackBufferColor
+        self.backgroundColor = backgroundColor
+        self.trackDividerColor = trackDividerColor
+        self.bufferColor = bufferColor
         self.surfaceOverlay = surfaceOverlay
     }
 }

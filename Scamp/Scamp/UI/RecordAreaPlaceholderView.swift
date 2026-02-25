@@ -40,7 +40,7 @@ struct RecordAreaPlaceholderView: View {
     private func loadedRecordSurface(for geometry: VinylRecordGeometry) -> some View {
         ZStack {
             Circle()
-                .fill(palette.recordColor)
+                .fill(palette.backgroundColor)
                 .overlay {
                     RadialGradient(
                         colors: [Color.clear, Color.black.opacity(0.04)],
@@ -59,12 +59,12 @@ struct RecordAreaPlaceholderView: View {
                 .clipShape(Circle())
 
             Circle()
-                .stroke(palette.trackBufferColor.opacity(0.32), lineWidth: max(1, size * 0.0024))
+                .stroke(palette.trackDividerColor.opacity(0.32), lineWidth: max(1, size * 0.0024))
                 .padding(size * 0.003)
 
             Circle()
                 .stroke(
-                    palette.trackBufferColor,
+                    palette.bufferColor,
                     style: StrokeStyle(lineWidth: max(1, geometry.outerBufferWidth))
                 )
                 .frame(
@@ -74,7 +74,7 @@ struct RecordAreaPlaceholderView: View {
 
             Circle()
                 .stroke(
-                    palette.recordColor.opacity(0.96),
+                    palette.backgroundColor.opacity(0.96),
                     style: StrokeStyle(lineWidth: geometry.trackBandWidth, lineCap: .round)
                 )
                 .frame(width: geometry.trackBandMidRadius * 2, height: geometry.trackBandMidRadius * 2)
@@ -85,7 +85,7 @@ struct RecordAreaPlaceholderView: View {
                 let grooveRadius = geometry.trackBandRadiusBounds.upperBound - (trackBandWidth * fraction)
                 Circle()
                     .stroke(
-                        palette.trackBufferColor.opacity(grooveIndex.isMultiple(of: 6) ? 0.5 : 0.22),
+                        palette.trackDividerColor.opacity(grooveIndex.isMultiple(of: 6) ? 0.5 : 0.22),
                         lineWidth: 0.55
                     )
                     .frame(width: grooveRadius * 2, height: grooveRadius * 2)
@@ -93,7 +93,7 @@ struct RecordAreaPlaceholderView: View {
 
             ForEach(Array(trackDivisionRadii(in: geometry).enumerated()), id: \.offset) { _, radius in
                 Circle()
-                    .stroke(palette.trackBufferColor.opacity(0.6), lineWidth: max(0.6, size * 0.0018))
+                    .stroke(palette.trackDividerColor.opacity(0.6), lineWidth: max(0.6, size * 0.0018))
                     .frame(width: radius * 2, height: radius * 2)
             }
 
@@ -103,7 +103,7 @@ struct RecordAreaPlaceholderView: View {
 
             Circle()
                 .stroke(
-                    palette.trackBufferColor,
+                    palette.bufferColor,
                     style: StrokeStyle(lineWidth: max(1, geometry.innerBufferWidth))
                 )
                 .frame(
@@ -112,7 +112,7 @@ struct RecordAreaPlaceholderView: View {
                 )
 
             Circle()
-                .fill(palette.recordColor)
+                .fill(palette.backgroundColor)
                 .overlay {
                     LinearGradient(
                         colors: [Color.white.opacity(0.01), Color.black.opacity(0.04)],
@@ -125,7 +125,7 @@ struct RecordAreaPlaceholderView: View {
                 .overlay {
                     if playback.albumArtImage == nil {
                         Circle()
-                            .stroke(palette.trackBufferColor.opacity(0.72), lineWidth: max(1, size * 0.0025))
+                            .stroke(palette.trackDividerColor.opacity(0.72), lineWidth: max(1, size * 0.0025))
                     }
                 }
                 .overlay {
@@ -176,7 +176,7 @@ struct RecordAreaPlaceholderView: View {
 
         return ZStack {
             Circle()
-                .stroke(palette.trackBufferColor.opacity(0.94), lineWidth: bufferRingWidth)
+                .stroke(palette.bufferColor.opacity(0.94), lineWidth: bufferRingWidth)
                 .frame(width: bufferRingDiameter, height: bufferRingDiameter)
                 .overlay(
                     Circle()
