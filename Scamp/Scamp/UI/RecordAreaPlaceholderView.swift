@@ -97,6 +97,10 @@ struct RecordAreaPlaceholderView: View {
                     .frame(width: radius * 2, height: radius * 2)
             }
 
+            if let surfaceOverlay = palette.surfaceOverlay {
+                surfaceOverlay.makeView(size)
+            }
+
             Circle()
                 .stroke(
                     palette.trackBufferColor,
