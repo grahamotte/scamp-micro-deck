@@ -6,10 +6,6 @@ struct ContentView: View {
     @Binding var recordTheme: RecordTheme
     @State private var columnVisibility: NavigationSplitViewVisibility = .detailOnly
 
-    private var nowPlayingTitle: String {
-        playback.currentTrackDisplayName ?? ScampLayout.statusFallbackTitle
-    }
-
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
             EmptyView()
@@ -25,7 +21,6 @@ struct ContentView: View {
         .containerBackground(Color.clear, for: .window)
         .toolbar(removing: .sidebarToggle)
         .background(TitlebarSidebarButtonHider())
-        .background(TitlebarNowPlayingText(text: nowPlayingTitle))
         .background(ThemeWindowConfigurator())
         .frame(width: ScampLayout.windowWidth, height: ScampLayout.windowHeight)
     }

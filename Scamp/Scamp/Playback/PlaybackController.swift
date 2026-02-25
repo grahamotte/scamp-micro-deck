@@ -156,11 +156,19 @@ final class PlaybackController: ObservableObject {
 
     func seek(toPlaylistProgress progress: Double) {
         guard !playlist.isEmpty else { return }
+        let shouldAutoplay = isPlaying
 
         let durations = trackDurations
         let totalDuration = durations.reduce(0, +)
         guard totalDuration > 0 else {
-            play(atPlaylistProgress: progress)
+            if shouldAutoplay {
+                play(atPlaylistProgress: progress)
+            } else {
+                let clamped = min(max(progress, 0), 1)
+                let maxIndex = playlist.count - 1
+                let targetIndex = Int(round(clamped * Double(maxIndex)))
+                stagePausedSeekTarget(at: targetIndex, startTime: 0)
+            }
             return
         }
 
@@ -178,28 +186,40 @@ final class PlaybackController: ObservableObject {
 
             let offsetInTrack = min(max(targetElapsed - elapsed, 0), max(duration - 0.001, 0))
             if currentIndex == index, engine.hasLoadedTrack {
-                cancelSpinRamp()
-                pendingSpinDownAction = .none
                 engine.seek(to: offsetInTrack)
                 restingTrackTime = offsetInTrack
-                engine.resume(
-                    rate: currentPlaybackRate,
-                    volume: currentPlaybackVolume
-                )
-                isPlaying = true
-                syncProgressTask()
-                updatePlaylistProgress(allowBackwardJump: true)
-                if !isTurntableMoving {
+                if shouldAutoplay {
+                    cancelSpinRamp()
+                    pendingSpinDownAction = .none
+                    engine.resume(
+                        rate: currentPlaybackRate,
+                        volume: currentPlaybackVolume
+                    )
+                    isPlaying = true
+                    syncProgressTask()
+                    updatePlaylistProgress(allowBackwardJump: true)
+                    if !isTurntableMoving {
+                        setTurntableSpeed(0)
+                    }
+                    rampTurntable(to: 1, duration: Self.spinUpDuration, completionAction: .none)
+                    persistSessionState()
+                } else {
+                    isPlaying = false
                     setTurntableSpeed(0)
+                    syncProgressTask()
+                    updatePlaylistProgress(allowBackwardJump: true)
+                    persistSessionState()
                 }
-                rampTurntable(to: 1, duration: Self.spinUpDuration, completionAction: .none)
-                persistSessionState()
             } else {
-                startTrack(
-                    at: index,
-                    startTime: offsetInTrack,
-                    preserveMomentum: isPlaying || isTurntableMoving
-                )
+                if shouldAutoplay {
+                    startTrack(
+                        at: index,
+                        startTime: offsetInTrack,
+                        preserveMomentum: isPlaying || isTurntableMoving
+                    )
+                } else {
+                    stagePausedSeekTarget(at: index, startTime: offsetInTrack)
+                }
             }
             return
         }
@@ -491,6 +511,23 @@ final class PlaybackController: ObservableObject {
         }
 
         startTrack(at: nextIndex, preserveMomentum: true)
+    }
+
+    private func stagePausedSeekTarget(at index: Int, startTime: TimeInterval) {
+        guard playlist.indices.contains(index) else { return }
+
+        cancelSpinRamp()
+        pendingSpinDownAction = .none
+        engine.stop()
+        currentIndex = index
+        restingTrackTime = max(startTime, 0)
+        pendingResumeTrackPath = playlist[index].url.path
+        pendingResumeTrackTime = restingTrackTime
+        isPlaying = false
+        setTurntableSpeed(0)
+        syncProgressTask()
+        updatePlaylistProgress(allowBackwardJump: true)
+        persistSessionState()
     }
 
     private func pauseWithSpinDown() {
