@@ -5,6 +5,7 @@ import UniformTypeIdentifiers
 struct PlaylistLoader {
     func loadTracks(from folderURL: URL) throws -> [PlaybackTrack] {
         let keys: Set<URLResourceKey> = [.isRegularFileKey, .contentTypeKey]
+        let fallbackAlbumTitle = folderURL.lastPathComponent.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
         let urls = try FileManager.default.contentsOfDirectory(
             at: folderURL,
             includingPropertiesForKeys: Array(keys),
@@ -27,7 +28,11 @@ struct PlaylistLoader {
                 return false
             }
             .map { url in
-                PlaybackTrack(url: url, duration: durationSeconds(for: url))
+                PlaybackTrack(
+                    url: url,
+                    duration: durationSeconds(for: url),
+                    albumTitle: albumTitle(for: url) ?? fallbackAlbumTitle
+                )
             }
             .sorted {
                 $0.sortName.localizedCaseInsensitiveCompare($1.sortName) == .orderedAscending
@@ -75,5 +80,20 @@ struct PlaylistLoader {
         }
 
         return duration
+    }
+
+    private func albumTitle(for url: URL) -> String? {
+        let asset = AVURLAsset(url: url)
+        let albumItems = AVMetadataItem.metadataItems(
+            from: asset.commonMetadata,
+            filteredByIdentifier: .commonIdentifierAlbumName
+        )
+        return albumItems.first?.stringValue?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+    }
+}
+
+private extension String {
+    var nilIfEmpty: String? {
+        isEmpty ? nil : self
     }
 }

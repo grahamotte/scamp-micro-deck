@@ -1,6 +1,7 @@
 import AppKit
 import Combine
 import Foundation
+import MediaPlayer
 
 @MainActor
 final class PlaybackController: ObservableObject {
@@ -42,6 +43,7 @@ final class PlaybackController: ObservableObject {
 
     private let loader: PlaylistLoader
     private let engine: AudioPlayerEngine
+    private let mediaRemoteBridge = PlaybackMediaRemoteBridge()
     private var securityScopedFolderURL: URL?
     private var spinRampTask: Task<Void, Never>?
     private var recordHoldRampTask: Task<Void, Never>?
@@ -61,8 +63,10 @@ final class PlaybackController: ObservableObject {
     init(loader: PlaylistLoader, engine: AudioPlayerEngine) {
         self.loader = loader
         self.engine = engine
+        configureMediaRemoteCommands()
         bindAudioEngineCallbacks()
         restorePersistedSessionIfAvailable()
+        syncMediaRemoteState()
     }
 
     convenience init() {
@@ -73,6 +77,7 @@ final class PlaybackController: ObservableObject {
         spinRampTask?.cancel()
         recordHoldRampTask?.cancel()
         progressTask?.cancel()
+        mediaRemoteBridge.clear()
 
         if let folderURL = securityScopedFolderURL {
             folderURL.stopAccessingSecurityScopedResource()
@@ -372,6 +377,97 @@ final class PlaybackController: ObservableObject {
         }
     }
 
+    private func configureMediaRemoteCommands() {
+        mediaRemoteBridge.configureCommands(
+            onTogglePlayPause: { [weak self] in
+                self?.handleRemoteTogglePlayPause() ?? false
+            },
+            onPlay: { [weak self] in
+                self?.handleRemotePlay() ?? false
+            },
+            onPause: { [weak self] in
+                self?.handleRemotePause() ?? false
+            },
+            onNextTrack: { [weak self] in
+                self?.handleRemoteNextTrack() ?? false
+            },
+            onPreviousTrack: { [weak self] in
+                self?.handleRemotePreviousTrack() ?? false
+            }
+        )
+    }
+
+    private func handleRemoteTogglePlayPause() -> Bool {
+        guard hasPlaylist else { return false }
+        togglePlayPause()
+        return true
+    }
+
+    private func handleRemotePlay() -> Bool {
+        guard hasPlaylist else { return false }
+        guard !isPlaying else { return true }
+        togglePlayPause()
+        return true
+    }
+
+    private func handleRemotePause() -> Bool {
+        guard hasPlaylist else { return false }
+        guard isPlaying else { return true }
+        togglePlayPause()
+        return true
+    }
+
+    private func handleRemoteNextTrack() -> Bool {
+        guard !playlist.isEmpty else { return false }
+        if let currentIndex, currentIndex + 1 >= playlist.count {
+            return false
+        }
+        playNext()
+        return true
+    }
+
+    private func handleRemotePreviousTrack() -> Bool {
+        guard !playlist.isEmpty else { return false }
+        if let currentIndex, currentIndex <= 0 {
+            return false
+        }
+        playPrevious()
+        return true
+    }
+
+    private func syncMediaRemoteState() {
+        guard
+            let currentIndex,
+            playlist.indices.contains(currentIndex)
+        else {
+            mediaRemoteBridge.updateNowPlaying(
+                trackTitle: nil,
+                albumTitle: nil,
+                artworkImage: nil,
+                duration: 0,
+                elapsedTime: 0,
+                playbackRate: 0,
+                isPlaying: false,
+                canSkipNext: false,
+                canSkipPrevious: false
+            )
+            return
+        }
+
+        let currentTrack = playlist[currentIndex]
+        mediaRemoteBridge.updateNowPlaying(
+            trackTitle: currentTrack.displayName,
+            albumTitle: currentTrack.albumTitle,
+            artworkImage: albumArtImage,
+            duration: currentTrack.duration,
+            elapsedTime: currentTrackElapsedTime,
+            playbackRate: isPlaying ? Double(currentPlaybackRate) : 0,
+            isPlaying: isPlaying,
+            canSkipNext: canPlayNext,
+            canSkipPrevious: canPlayPrevious
+        )
+    }
+
     private func loadPlaylist(from folderURL: URL) {
         stopPlayback(clearSelection: true, withSpinDown: false)
         resetRecordRotation()
@@ -389,6 +485,7 @@ final class PlaybackController: ObservableObject {
             if let artworkURL = try? loader.loadFirstArtworkURL(from: folderURL) {
                 albumArtImage = NSImage(contentsOf: artworkURL)
             }
+            syncMediaRemoteState()
             persistSessionState()
         } catch {
             playlist = []
@@ -718,6 +815,7 @@ final class PlaybackController: ObservableObject {
         if allowBackwardJump || measuredProgress >= playlistProgress {
             playlistProgress = measuredProgress
         }
+        syncMediaRemoteState()
     }
 
     private func syncProgressTask() {
