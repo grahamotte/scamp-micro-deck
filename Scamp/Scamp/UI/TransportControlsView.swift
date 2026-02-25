@@ -9,7 +9,7 @@ struct TransportControlsView: View {
     var body: some View {
         HStack(spacing: buttonSpacing) {
             TransportControlButton(icon: "eject.fill", buttonDiameter: buttonDiameter, iconSize: iconSize) {
-                playback.loadFolder()
+                playback.ejectAndLoadFolder()
             }
 
             TransportControlButton(icon: "backward.fill", buttonDiameter: buttonDiameter, iconSize: iconSize) {

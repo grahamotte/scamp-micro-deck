@@ -22,8 +22,17 @@ final class PlaybackController: ObservableObject {
     private static let playbackVolumeCurveExponent: Double = 0.8
     private static let rampFrameNanoseconds: UInt64 = 16_666_667
     private static let progressFrameNanoseconds: UInt64 = 16_666_667
+    private static let sessionPersistEveryProgressTicks = 60
     private static let movingThreshold: Double = 0.001
     private static let platterRPM: Double = 33
+    private static let persistedSessionDefaultsKey = "playback.session.v1"
+
+    private struct PersistedPlaybackSession: Codable {
+        let folderBookmarkData: Data
+        let currentTrackPath: String?
+        let currentTrackTime: TimeInterval
+        let recordRotationDegrees: Double
+    }
 
     private enum SpinDownAction {
         case none
@@ -37,6 +46,7 @@ final class PlaybackController: ObservableObject {
     private var spinRampTask: Task<Void, Never>?
     private var recordHoldRampTask: Task<Void, Never>?
     private var progressTask: Task<Void, Never>?
+    private var progressTickCount = 0
     private var pendingSpinDownAction: SpinDownAction = .none
     private var baseTurntableSpeed: Double = 0
     private var recordHoldMultiplier: Double = 1
@@ -44,11 +54,15 @@ final class PlaybackController: ObservableObject {
     private var recordRotationOffsetDegrees: Double = 0
     private var recordRotationAnchorDate: Date?
     private var recordRotationAnchorSpeed: Double = 0
+    private var restingTrackTime: TimeInterval = 0
+    private var pendingResumeTrackPath: String?
+    private var pendingResumeTrackTime: TimeInterval = 0
 
     init(loader: PlaylistLoader, engine: AudioPlayerEngine) {
         self.loader = loader
         self.engine = engine
         bindAudioEngineCallbacks()
+        restorePersistedSessionIfAvailable()
     }
 
     convenience init() {
@@ -122,7 +136,7 @@ final class PlaybackController: ObservableObject {
 
         let elapsedBeforeCurrentTrack = durations.prefix(currentIndex).reduce(0, +)
         let currentTrackDuration = durations[currentIndex]
-        let clampedCurrentTrackTime = min(max(engine.currentTime, 0), currentTrackDuration)
+        let clampedCurrentTrackTime = min(max(currentTrackElapsedTime, 0), currentTrackDuration)
         let elapsed = elapsedBeforeCurrentTrack + clampedCurrentTrackTime
         return min(max(elapsed / totalDuration, 0), 1)
     }
@@ -167,6 +181,7 @@ final class PlaybackController: ObservableObject {
                 cancelSpinRamp()
                 pendingSpinDownAction = .none
                 engine.seek(to: offsetInTrack)
+                restingTrackTime = offsetInTrack
                 engine.resume(
                     rate: currentPlaybackRate,
                     volume: currentPlaybackVolume
@@ -178,6 +193,7 @@ final class PlaybackController: ObservableObject {
                     setTurntableSpeed(0)
                 }
                 rampTurntable(to: 1, duration: Self.spinUpDuration, completionAction: .none)
+                persistSessionState()
             } else {
                 startTrack(
                     at: index,
@@ -200,6 +216,24 @@ final class PlaybackController: ObservableObject {
     }
 
     func loadFolder() {
+        guard let folderURL = chooseFolderURL() else {
+            return
+        }
+
+        loadPlaylist(from: folderURL)
+    }
+
+    func ejectAndLoadFolder() {
+        ejectCurrentRecord()
+
+        guard let folderURL = chooseFolderURL() else {
+            return
+        }
+
+        loadPlaylist(from: folderURL)
+    }
+
+    private func chooseFolderURL() -> URL? {
         let panel = NSOpenPanel()
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
@@ -207,11 +241,25 @@ final class PlaybackController: ObservableObject {
         panel.prompt = "Load"
         panel.message = "Choose a folder containing audio files."
 
-        guard panel.runModal() == .OK, let folderURL = panel.url else {
-            return
+        guard panel.runModal() == .OK else { return nil }
+        return panel.url
+    }
+
+    private func ejectCurrentRecord() {
+        stopPlayback(clearSelection: true, withSpinDown: false)
+        resetRecordRotation()
+        albumArtImage = nil
+        playlist = []
+        restingTrackTime = 0
+        clearPendingResumeState()
+        updatePlaylistProgress(allowBackwardJump: true)
+
+        if let activeURL = securityScopedFolderURL {
+            activeURL.stopAccessingSecurityScopedResource()
+            securityScopedFolderURL = nil
         }
 
-        loadPlaylist(from: folderURL)
+        clearPersistedSessionState()
     }
 
     func togglePlayPause() {
@@ -308,6 +356,8 @@ final class PlaybackController: ObservableObject {
         stopPlayback(clearSelection: true, withSpinDown: false)
         resetRecordRotation()
         albumArtImage = nil
+        restingTrackTime = 0
+        clearPendingResumeState()
         beginSecurityScopedAccess(for: folderURL)
 
         do {
@@ -319,11 +369,14 @@ final class PlaybackController: ObservableObject {
             if let artworkURL = try? loader.loadFirstArtworkURL(from: folderURL) {
                 albumArtImage = NSImage(contentsOf: artworkURL)
             }
+            persistSessionState()
         } catch {
             playlist = []
             currentIndex = nil
             albumArtImage = nil
+            restingTrackTime = 0
             updatePlaylistProgress(allowBackwardJump: true)
+            clearPersistedSessionState()
         }
     }
 
@@ -367,8 +420,11 @@ final class PlaybackController: ObservableObject {
 
         if clearSelection {
             currentIndex = nil
+            restingTrackTime = 0
+            clearPendingResumeState()
         }
         updatePlaylistProgress(allowBackwardJump: true)
+        persistSessionState()
     }
 
     private func startTrack(
@@ -382,6 +438,7 @@ final class PlaybackController: ObservableObject {
         }
 
         let track = playlist[index]
+        let resolvedStartTime = resolvedStartTime(for: track, requestedStartTime: startTime)
         let shouldRampFromRest = !preserveMomentum
         let startRate = shouldRampFromRest ? playbackRate(for: 0) : currentPlaybackRate
         let startVolume = shouldRampFromRest ? playbackVolume(for: 0) : currentPlaybackVolume
@@ -390,10 +447,12 @@ final class PlaybackController: ObservableObject {
             cancelSpinRamp()
             pendingSpinDownAction = .none
             try engine.play(url: track.url, rate: startRate, volume: startVolume)
-            if startTime > 0 {
-                engine.seek(to: startTime)
+            if resolvedStartTime > 0 {
+                engine.seek(to: resolvedStartTime)
             }
             currentIndex = index
+            restingTrackTime = resolvedStartTime
+            consumePendingResumeState(for: track)
             isPlaying = true
             syncProgressTask()
             updatePlaylistProgress(allowBackwardJump: true)
@@ -409,11 +468,13 @@ final class PlaybackController: ObservableObject {
             } else {
                 setTurntableSpeed(1)
             }
+            persistSessionState()
         } catch {
             isPlaying = false
             setTurntableSpeed(0)
             syncProgressTask()
             updatePlaylistProgress(allowBackwardJump: true)
+            persistSessionState()
         }
     }
 
@@ -438,6 +499,7 @@ final class PlaybackController: ObservableObject {
             setTurntableSpeed(0)
             syncProgressTask()
             updatePlaylistProgress(allowBackwardJump: true)
+            persistSessionState()
             return
         }
 
@@ -502,17 +564,22 @@ final class PlaybackController: ObservableObject {
             return
         case .pause:
             engine.pause()
+            restingTrackTime = engine.currentTime
             isPlaying = false
             syncProgressTask()
             updatePlaylistProgress(allowBackwardJump: true)
+            persistSessionState()
         case let .stop(clearSelection):
             engine.stop()
             isPlaying = false
             if clearSelection {
                 currentIndex = nil
+                restingTrackTime = 0
+                clearPendingResumeState()
             }
             syncProgressTask()
             updatePlaylistProgress(allowBackwardJump: true)
+            persistSessionState()
         }
     }
 
@@ -595,6 +662,12 @@ final class PlaybackController: ObservableObject {
         recordRotationAnchorSpeed = 0
     }
 
+    private func setRecordRotationOffset(_ degrees: Double) {
+        recordRotationOffsetDegrees = degrees.truncatingRemainder(dividingBy: 360)
+        recordRotationAnchorDate = nil
+        recordRotationAnchorSpeed = 0
+    }
+
     private func applyTurntableState() {
         turntableSpeed = effectiveTurntableSpeed
 
@@ -625,6 +698,11 @@ final class PlaybackController: ObservableObject {
             guard let self else { return }
             while !Task.isCancelled {
                 self.updatePlaylistProgress()
+                self.progressTickCount += 1
+                if self.progressTickCount >= Self.sessionPersistEveryProgressTicks {
+                    self.progressTickCount = 0
+                    self.persistSessionState()
+                }
                 do {
                     try await Task.sleep(nanoseconds: Self.progressFrameNanoseconds)
                 } catch {
@@ -637,6 +715,7 @@ final class PlaybackController: ObservableObject {
     private func cancelProgressTask() {
         progressTask?.cancel()
         progressTask = nil
+        progressTickCount = 0
     }
 
     private func playbackRate(for normalizedSpeed: Double) -> Float {
@@ -685,5 +764,131 @@ final class PlaybackController: ObservableObject {
             return true
         }
         return false
+    }
+
+    private var currentTrackElapsedTime: TimeInterval {
+        if engine.hasLoadedTrack {
+            return engine.currentTime
+        }
+        return restingTrackTime
+    }
+
+    private var currentTrackURL: URL? {
+        guard let currentIndex, playlist.indices.contains(currentIndex) else {
+            return nil
+        }
+        return playlist[currentIndex].url
+    }
+
+    private func resolvedStartTime(
+        for track: PlaybackTrack,
+        requestedStartTime: TimeInterval
+    ) -> TimeInterval {
+        guard requestedStartTime <= 0 else {
+            return max(requestedStartTime, 0)
+        }
+
+        guard pendingResumeTrackPath == track.url.path else {
+            return max(requestedStartTime, 0)
+        }
+
+        return max(pendingResumeTrackTime, 0)
+    }
+
+    private func consumePendingResumeState(for track: PlaybackTrack) {
+        guard pendingResumeTrackPath == track.url.path else { return }
+        clearPendingResumeState()
+    }
+
+    private func clearPendingResumeState() {
+        pendingResumeTrackPath = nil
+        pendingResumeTrackTime = 0
+    }
+
+    private func persistSessionState() {
+        guard
+            let folderURL = securityScopedFolderURL,
+            !playlist.isEmpty
+        else {
+            clearPersistedSessionState()
+            return
+        }
+
+        guard
+            let bookmarkData = try? folderURL.bookmarkData(
+                options: [.withSecurityScope],
+                includingResourceValuesForKeys: nil,
+                relativeTo: nil
+            )
+        else {
+            return
+        }
+
+        let session = PersistedPlaybackSession(
+            folderBookmarkData: bookmarkData,
+            currentTrackPath: currentTrackURL?.path,
+            currentTrackTime: max(currentTrackElapsedTime, 0),
+            recordRotationDegrees: recordRotationDegrees(at: Date())
+        )
+
+        guard let encoded = try? JSONEncoder().encode(session) else { return }
+        UserDefaults.standard.set(encoded, forKey: Self.persistedSessionDefaultsKey)
+    }
+
+    private func clearPersistedSessionState() {
+        UserDefaults.standard.removeObject(forKey: Self.persistedSessionDefaultsKey)
+    }
+
+    private func restorePersistedSessionIfAvailable() {
+        guard
+            let encoded = UserDefaults.standard.data(forKey: Self.persistedSessionDefaultsKey),
+            let session = try? JSONDecoder().decode(PersistedPlaybackSession.self, from: encoded)
+        else {
+            return
+        }
+
+        var bookmarkIsStale = false
+        guard
+            let folderURL = try? URL(
+                resolvingBookmarkData: session.folderBookmarkData,
+                options: [.withSecurityScope],
+                relativeTo: nil,
+                bookmarkDataIsStale: &bookmarkIsStale
+            )
+        else {
+            clearPersistedSessionState()
+            return
+        }
+
+        loadPlaylist(from: folderURL)
+        guard !playlist.isEmpty else { return }
+
+        if
+            let currentTrackPath = session.currentTrackPath,
+            let restoredIndex = playlist.firstIndex(where: { $0.url.path == currentTrackPath })
+        {
+            currentIndex = restoredIndex
+        } else {
+            currentIndex = 0
+        }
+
+        let trackIndex = currentIndex ?? 0
+        let trackDuration = max(trackDurations[trackIndex], 0)
+        let restoredTime = min(max(session.currentTrackTime, 0), max(trackDuration - 0.001, 0))
+        restingTrackTime = restoredTime
+
+        if let currentIndex, playlist.indices.contains(currentIndex) {
+            pendingResumeTrackPath = playlist[currentIndex].url.path
+            pendingResumeTrackTime = restoredTime
+        } else {
+            clearPendingResumeState()
+        }
+
+        setRecordRotationOffset(session.recordRotationDegrees)
+        updatePlaylistProgress(allowBackwardJump: true)
+
+        if bookmarkIsStale {
+            persistSessionState()
+        }
     }
 }
