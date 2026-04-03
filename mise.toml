@@ -9,3 +9,7 @@ run = "SCAMP_OPEN_DIST_FINDER=1 ./scripts/build-distribution.sh"
 [tasks.start]
 description = "Stop running app, clean old builds, rebuild, copy to root, and launch"
 run = "./scripts/start.sh"
+
+[tasks.xcode]
+description = "Open Scamp.xcodeproj in Xcode"
+run = "bash -c 'if [[ -d Scamp.xcodeproj ]]; then open Scamp.xcodeproj; elif [[ -d Scamp/Scamp.xcodeproj ]]; then open Scamp/Scamp.xcodeproj; else echo \"Could not find Scamp.xcodeproj in root or Scamp/\" >&2; exit 1; fi'"
