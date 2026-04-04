@@ -3,7 +3,7 @@
 Scamp is a native macOS music player meant to emulate all the tedious, crappy charm of a real vinyl record player. I built this so that I don't need to spend a bunch of money on a vinyl record hobby.
 
 <p>
-  <img src="./screenshot.png" alt="Scamp app screenshot" style="max-width: 640px; width: 100%;" />
+  <img src="./assets/screenshot.png" alt="Scamp app screenshot" style="max-width: 640px; width: 100%;" />
 </p>
 
 ## How to use
