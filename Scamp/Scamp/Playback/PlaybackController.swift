@@ -260,6 +260,21 @@ final class PlaybackController: ObservableObject {
         }
     }
 
+    func folderHasPlayableTracks(_ folderURL: URL) async -> Bool {
+        let didStartAccess = folderURL.startAccessingSecurityScopedResource()
+        defer {
+            if didStartAccess {
+                folderURL.stopAccessingSecurityScopedResource()
+            }
+        }
+
+        guard let tracks = try? await loader.loadTracks(from: folderURL) else {
+            return false
+        }
+
+        return !tracks.isEmpty
+    }
+
     func ejectAndLoadFolder() {
         ejectCurrentRecord()
 

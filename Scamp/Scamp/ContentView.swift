@@ -47,6 +47,11 @@ struct ContentView: View {
                     return
                 }
 
+                guard await playback.folderHasPlayableTracks(folderURL) else {
+                    showsHowToUse = true
+                    return
+                }
+
                 playback.loadFolder(from: folderURL)
             }
         }
