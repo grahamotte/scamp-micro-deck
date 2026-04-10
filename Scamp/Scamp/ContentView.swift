@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct ContentView: View {
     @ObservedObject var playback: PlaybackController
@@ -27,10 +28,46 @@ struct ContentView: View {
         .background(TitlebarSidebarButtonHider())
         .background(ThemeWindowConfigurator())
         .frame(width: ScampLayout.windowWidth, height: ScampLayout.windowHeight)
+        .onDrop(of: [UTType.fileURL.identifier], isTargeted: nil, perform: handleFolderDrop(providers:))
         .sheet(isPresented: $showsHowToUse) {
             HowToUseSheet(onOK: dismissHowToUse)
                 .interactiveDismissDisabled()
         }
+    }
+
+    private func handleFolderDrop(providers: [NSItemProvider]) -> Bool {
+        guard let provider = providers.first(where: { $0.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier) }) else {
+            return false
+        }
+
+        provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, _ in
+            Task { @MainActor in
+                guard let folderURL = droppedURL(from: item), folderURL.isDirectory else {
+                    showsHowToUse = true
+                    return
+                }
+
+                playback.loadFolder(from: folderURL)
+            }
+        }
+
+        return true
+    }
+
+    private func droppedURL(from item: NSSecureCoding?) -> URL? {
+        if let url = item as? URL {
+            return url
+        }
+
+        if let data = item as? Data {
+            return URL(dataRepresentation: data, relativeTo: nil)
+        }
+
+        if let string = item as? String {
+            return URL(string: string)
+        }
+
+        return nil
     }
 }
 
@@ -45,6 +82,12 @@ struct ContentView: View {
     )
 }
 
+private extension URL {
+    var isDirectory: Bool {
+        (try? resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true
+    }
+}
+
 private struct HowToUseSheet: View {
     let onOK: () -> Void
 
@@ -56,22 +99,12 @@ private struct HowToUseSheet: View {
             VStack(alignment: .leading, spacing: 12) {
                 Text("Scamp is designed to feel a bit like using a real vinyl record player.")
 
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    Text("To load your first album, click the ")
-                    + Text(Image(systemName: "eject.fill"))
-                    + Text(" eject button.")
-                }
-
+                Text("To load your first album, click the \(Image(systemName: "eject.fill")) eject button.")
                 Text("Choose a folder with audio files and album art, and Scamp will start playing from there.")
-                Text("Want a quick test? Use ")
-                + Text("Help > Load Demo Album").bold()
-                + Text(" to load the bundled sample record.")
-                Text("Want to switch albums? Just press ")
-                + Text(Image(systemName: "eject.fill"))
-                + Text(" again and pick a different folder.")
-                Text("You can always come back to this later from ")
-                + Text("Help > How to Use").bold()
-                + Text(".")
+                Text("You can also drag a folder straight into the window to load it.")
+                Text("Want a quick test? Use \(Text("Help > Load Demo Album").bold()) to load the bundled sample record.")
+                Text("Want to switch albums? Just press \(Image(systemName: "eject.fill")) again and pick a different folder.")
+                Text("You can always come back to this later from \(Text("Help > Scamp Micro Deck Help").bold()).")
             }
             .fixedSize(horizontal: false, vertical: true)
 

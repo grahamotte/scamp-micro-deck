@@ -84,7 +84,6 @@ final class PlaybackController: ObservableObject {
         spinRampTask?.cancel()
         recordHoldRampTask?.cancel()
         progressTask?.cancel()
-        mediaRemoteBridge.clear()
 
         if let folderURL = securityScopedFolderURL {
             folderURL.stopAccessingSecurityScopedResource()
@@ -252,7 +251,13 @@ final class PlaybackController: ObservableObject {
             return
         }
 
-        loadPlaylist(from: folderURL)
+        loadFolder(from: folderURL)
+    }
+
+    func loadFolder(from folderURL: URL) {
+        Task { @MainActor [weak self] in
+            await self?.loadPlaylist(from: folderURL)
+        }
     }
 
     func ejectAndLoadFolder() {
@@ -262,7 +267,7 @@ final class PlaybackController: ObservableObject {
             return
         }
 
-        loadPlaylist(from: folderURL)
+        loadFolder(from: folderURL)
     }
 
     func loadDemoAlbum() {
@@ -299,7 +304,9 @@ final class PlaybackController: ObservableObject {
                 }
             }
 
-            loadPlaylist(from: demoAlbumURL)
+            Task { @MainActor [weak self] in
+                await self?.loadPlaylist(from: demoAlbumURL)
+            }
         } catch {
             return
         }
@@ -515,7 +522,7 @@ final class PlaybackController: ObservableObject {
         )
     }
 
-    private func loadPlaylist(from folderURL: URL) {
+    private func loadPlaylist(from folderURL: URL) async {
         stopPlayback(clearSelection: true, withSpinDown: false)
         resetRecordRotation()
         albumArtImage = nil
@@ -524,7 +531,7 @@ final class PlaybackController: ObservableObject {
         beginSecurityScopedAccess(for: folderURL)
 
         do {
-            let tracks = try loader.loadTracks(from: folderURL)
+            let tracks = try await loader.loadTracks(from: folderURL)
             playlist = tracks
             currentIndex = tracks.isEmpty ? nil : 0
             updatePlaylistProgress(allowBackwardJump: true)
@@ -1022,6 +1029,12 @@ final class PlaybackController: ObservableObject {
     }
 
     private func restorePersistedSessionIfAvailable() {
+        Task { @MainActor [weak self] in
+            await self?.restorePersistedSession()
+        }
+    }
+
+    private func restorePersistedSession() async {
         guard
             let encoded = UserDefaults.standard.data(forKey: Self.persistedSessionDefaultsKey),
             let session = try? JSONDecoder().decode(PersistedPlaybackSession.self, from: encoded)
@@ -1042,7 +1055,7 @@ final class PlaybackController: ObservableObject {
             return
         }
 
-        loadPlaylist(from: folderURL)
+        await loadPlaylist(from: folderURL)
         guard !playlist.isEmpty else { return }
 
         if

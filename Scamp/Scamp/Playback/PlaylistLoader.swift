@@ -3,7 +3,7 @@ import Foundation
 import UniformTypeIdentifiers
 
 struct PlaylistLoader {
-    func loadTracks(from folderURL: URL) throws -> [PlaybackTrack] {
+    func loadTracks(from folderURL: URL) async throws -> [PlaybackTrack] {
         let keys: Set<URLResourceKey> = [.isRegularFileKey, .contentTypeKey]
         let fallbackAlbumTitle = folderURL.lastPathComponent.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
         let urls = try FileManager.default.contentsOfDirectory(
@@ -12,31 +12,30 @@ struct PlaylistLoader {
             options: [.skipsHiddenFiles]
         )
 
-        return urls
-            .filter { url in
-                guard
-                    let values = try? url.resourceValues(forKeys: keys),
-                    values.isRegularFile == true
-                else {
-                    return false
-                }
+        var tracks: [PlaybackTrack] = []
 
-                if let contentType = values.contentType {
-                    return contentType.conforms(to: .audio)
-                }
-
-                return false
+        for url in urls {
+            guard
+                let values = try? url.resourceValues(forKeys: keys),
+                values.isRegularFile == true,
+                let contentType = values.contentType,
+                contentType.conforms(to: .audio)
+            else {
+                continue
             }
-            .map { url in
+
+            tracks.append(
                 PlaybackTrack(
                     url: url,
                     duration: durationSeconds(for: url),
-                    albumTitle: albumTitle(for: url) ?? fallbackAlbumTitle
+                    albumTitle: await albumTitle(for: url) ?? fallbackAlbumTitle
                 )
-            }
-            .sorted {
-                $0.sortName.localizedCaseInsensitiveCompare($1.sortName) == .orderedAscending
-            }
+            )
+        }
+
+        return tracks.sorted {
+            $0.sortName.localizedCaseInsensitiveCompare($1.sortName) == .orderedAscending
+        }
     }
 
     func loadFirstArtworkURL(from folderURL: URL) throws -> URL? {
@@ -82,13 +81,25 @@ struct PlaylistLoader {
         return duration
     }
 
-    private func albumTitle(for url: URL) -> String? {
+    private func albumTitle(for url: URL) async -> String? {
         let asset = AVURLAsset(url: url)
+        guard let metadata = try? await asset.load(.commonMetadata) else {
+            return nil
+        }
+
         let albumItems = AVMetadataItem.metadataItems(
-            from: asset.commonMetadata,
+            from: metadata,
             filteredByIdentifier: .commonIdentifierAlbumName
         )
-        return albumItems.first?.stringValue?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+
+        guard
+            let albumItem = albumItems.first,
+            let albumTitle = try? await albumItem.load(.stringValue)
+        else {
+            return nil
+        }
+
+        return albumTitle.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
     }
 }
 

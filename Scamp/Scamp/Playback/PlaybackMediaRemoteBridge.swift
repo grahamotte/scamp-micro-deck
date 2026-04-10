@@ -23,6 +23,10 @@ final class PlaybackMediaRemoteBridge {
     private var cachedArtworkIdentifier: ObjectIdentifier?
     private var cachedArtwork: MPMediaItemArtwork?
 
+    deinit {
+        clear()
+    }
+
     func configureCommands(
         onTogglePlayPause: @escaping CommandHandler,
         onPlay: @escaping CommandHandler,
