@@ -6,6 +6,8 @@ struct ScampApp: App {
     @AppStorage("selectedTableTheme") private var selectedTableThemeRawValue = TableTheme.wood.rawValue
     @AppStorage("selectedRecordTheme") private var selectedRecordThemeRawValue = RecordTheme.black.rawValue
     @AppStorage("selectedControlsTheme") private var selectedControlsThemeRawValue = ControlsTheme.silver.rawValue
+    @AppStorage("hasSeenHowToUse") private var hasSeenHowToUse = false
+    @State private var showsHowToUse = false
 
     private var selectedTableTheme: Binding<TableTheme> {
         Binding(
@@ -34,8 +36,17 @@ struct ScampApp: App {
                 playback: playback,
                 tableTheme: selectedTableTheme,
                 recordTheme: selectedRecordTheme,
-                controlsTheme: selectedControlsTheme
+                controlsTheme: selectedControlsTheme,
+                showsHowToUse: $showsHowToUse,
+                dismissHowToUse: {
+                    hasSeenHowToUse = true
+                    showsHowToUse = false
+                }
             )
+            .task {
+                guard !hasSeenHowToUse else { return }
+                showsHowToUse = true
+            }
         }
         .defaultSize(width: ScampLayout.windowWidth, height: ScampLayout.windowHeight)
         .windowResizability(.contentSize)
@@ -83,6 +94,13 @@ struct ScampApp: App {
                     }
                 }
                 .pickerStyle(.inline)
+            }
+
+            CommandGroup(replacing: .help) {
+                Button("Scamp Micro Deck Help") {
+                    showsHowToUse = true
+                }
+                .keyboardShortcut("/", modifiers: [.command, .shift])
             }
         }
     }
