@@ -5,6 +5,13 @@ import MediaPlayer
 
 @MainActor
 final class PlaybackController: ObservableObject {
+    private static let demoAlbumFilenames = [
+        "ISTANBUL (Not Constantinople) - FRANKIE VAUGHAN.mp3",
+        "Mr. Sandman - The Chordettes - Archie Bleyer.mp3",
+        "Smoke on the Water - Pancho Baird - Pancho Bairds Gitfiddlers-restored.mp3",
+        "cover.jpg"
+    ]
+
     @Published private(set) var playlist: [PlaybackTrack] = []
     @Published private(set) var currentIndex: Int?
     @Published private(set) var isPlaying = false
@@ -256,6 +263,46 @@ final class PlaybackController: ObservableObject {
         }
 
         loadPlaylist(from: folderURL)
+    }
+
+    func loadDemoAlbum() {
+        guard
+            let resourcesURL = Bundle.main.resourceURL,
+            let applicationSupportURL = FileManager.default.urls(
+                for: .applicationSupportDirectory,
+                in: .userDomainMask
+            ).first
+        else {
+            return
+        }
+
+        let demoAlbumURL = applicationSupportURL
+            .appendingPathComponent(Bundle.main.bundleIdentifier ?? "Scamp", isDirectory: true)
+            .appendingPathComponent("Demo Album", isDirectory: true)
+
+        do {
+            try FileManager.default.createDirectory(
+                at: demoAlbumURL,
+                withIntermediateDirectories: true,
+                attributes: nil
+            )
+
+            for filename in Self.demoAlbumFilenames {
+                let bundledFileURL = resourcesURL.appendingPathComponent(filename)
+                guard FileManager.default.fileExists(atPath: bundledFileURL.path) else {
+                    return
+                }
+
+                let stagedFileURL = demoAlbumURL.appendingPathComponent(filename)
+                if !FileManager.default.fileExists(atPath: stagedFileURL.path) {
+                    try FileManager.default.copyItem(at: bundledFileURL, to: stagedFileURL)
+                }
+            }
+
+            loadPlaylist(from: demoAlbumURL)
+        } catch {
+            return
+        }
     }
 
     private func chooseFolderURL() -> URL? {

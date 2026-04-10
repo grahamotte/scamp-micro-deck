@@ -63,6 +63,9 @@ private struct HowToUseSheet: View {
                 }
 
                 Text("Choose a folder with audio files and album art, and Scamp will start playing from there.")
+                Text("Want a quick test? Use ")
+                + Text("Help > Load Demo Album").bold()
+                + Text(" to load the bundled sample record.")
                 Text("Want to switch albums? Just press ")
                 + Text(Image(systemName: "eject.fill"))
                 + Text(" again and pick a different folder.")

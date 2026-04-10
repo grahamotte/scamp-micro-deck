@@ -97,6 +97,12 @@ struct ScampApp: App {
             }
 
             CommandGroup(replacing: .help) {
+                Button("Load Demo Album") {
+                    playback.loadDemoAlbum()
+                }
+
+                Divider()
+
                 Button("Scamp Micro Deck Help") {
                     showsHowToUse = true
                 }
