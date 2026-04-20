@@ -47,8 +47,3 @@ rsync -a --delete "$APP_PATH/" "$ROOT_APP_PATH/"
 
 echo "Built app: $APP_PATH"
 echo "Published app: $ROOT_APP_PATH"
-
-if [[ "${SCAMP_OPEN_FINDER:-0}" == "1" ]]; then
-  echo "Opening Finder at build output..."
-  open -R "$APP_PATH"
-fi

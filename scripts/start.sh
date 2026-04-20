@@ -20,7 +20,7 @@ echo "Cleaning derived build output..."
 rm -rf "$ROOT_DIR/.build/xcode"
 
 echo "Building fresh app..."
-"$ROOT_DIR/scripts/build-macos.sh" "$CONFIGURATION"
+"$ROOT_DIR/scripts/build.sh" "$CONFIGURATION"
 
 echo "Launching app..."
 open "$ROOT_DIR/Scamp.app"
