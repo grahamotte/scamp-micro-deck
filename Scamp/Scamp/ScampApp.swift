@@ -52,62 +52,105 @@ struct ScampApp: App {
         .windowResizability(.contentSize)
         .windowStyle(.hiddenTitleBar)
         .commands {
-            CommandMenu("Theme") {
-                Button("Randomize Themes") {
-                    if let tableTheme = TableTheme.allCases.randomElement() {
-                        selectedTableTheme.wrappedValue = tableTheme
-                    }
-                    if let recordTheme = RecordTheme.allCases.randomElement() {
-                        selectedRecordTheme.wrappedValue = recordTheme
-                    }
-                    if let controlsTheme = ControlsTheme.allCases.randomElement() {
-                        selectedControlsTheme.wrappedValue = controlsTheme
-                    }
+            ScampCommands(
+                playback: playback,
+                tableTheme: selectedTableTheme,
+                recordTheme: selectedRecordTheme,
+                controlsTheme: selectedControlsTheme,
+                showsHowToUse: $showsHowToUse
+            )
+        }
+
+        Window("About Scamp", id: AboutScampView.windowID) {
+            AboutScampView()
+        }
+        .defaultSize(width: 460, height: 520)
+        .windowResizability(.contentSize)
+    }
+}
+
+private struct ScampCommands: Commands {
+    let playback: PlaybackController
+    @Binding var tableTheme: TableTheme
+    @Binding var recordTheme: RecordTheme
+    @Binding var controlsTheme: ControlsTheme
+    @Binding var showsHowToUse: Bool
+    @Environment(\.openWindow) private var openWindow
+
+    init(
+        playback: PlaybackController,
+        tableTheme: Binding<TableTheme>,
+        recordTheme: Binding<RecordTheme>,
+        controlsTheme: Binding<ControlsTheme>,
+        showsHowToUse: Binding<Bool>
+    ) {
+        self.playback = playback
+        _tableTheme = tableTheme
+        _recordTheme = recordTheme
+        _controlsTheme = controlsTheme
+        _showsHowToUse = showsHowToUse
+    }
+
+    var body: some Commands {
+        CommandGroup(replacing: .appInfo) {
+            Button("About Scamp Micro Deck") {
+                openWindow(id: AboutScampView.windowID)
+            }
+        }
+
+        CommandMenu("Theme") {
+            Button("Randomize Themes") {
+                if let tableTheme = TableTheme.allCases.randomElement() {
+                    self.tableTheme = tableTheme
                 }
-
-                Divider()
-
-                Picker("Table Theme", selection: selectedTableTheme) {
-                    ForEach(TableTheme.allCases) { theme in
-                        Text(theme.displayName)
-                            .tag(theme)
-                    }
+                if let recordTheme = RecordTheme.allCases.randomElement() {
+                    self.recordTheme = recordTheme
                 }
-                .pickerStyle(.inline)
-
-                Divider()
-
-                Picker("Record Theme", selection: selectedRecordTheme) {
-                    ForEach(RecordTheme.allCases) { theme in
-                        Text(theme.displayName)
-                            .tag(theme)
-                    }
+                if let controlsTheme = ControlsTheme.allCases.randomElement() {
+                    self.controlsTheme = controlsTheme
                 }
-                .pickerStyle(.inline)
-
-                Divider()
-
-                Picker("Controls Theme", selection: selectedControlsTheme) {
-                    ForEach(ControlsTheme.allCases) { theme in
-                        Text(theme.displayName)
-                            .tag(theme)
-                    }
-                }
-                .pickerStyle(.inline)
             }
 
-            CommandGroup(replacing: .help) {
-                Button("Load Demo Album") {
-                    playback.loadDemoAlbum()
-                }
+            Divider()
 
-                Divider()
-
-                Button("Scamp Micro Deck Help") {
-                    showsHowToUse = true
+            Picker("Table Theme", selection: $tableTheme) {
+                ForEach(TableTheme.allCases) { theme in
+                    Text(theme.displayName)
+                        .tag(theme)
                 }
-                .keyboardShortcut("/", modifiers: [.command, .shift])
             }
+            .pickerStyle(.inline)
+
+            Divider()
+
+            Picker("Record Theme", selection: $recordTheme) {
+                ForEach(RecordTheme.allCases) { theme in
+                    Text(theme.displayName)
+                        .tag(theme)
+                }
+            }
+            .pickerStyle(.inline)
+
+            Divider()
+
+            Picker("Controls Theme", selection: $controlsTheme) {
+                ForEach(ControlsTheme.allCases) { theme in
+                    Text(theme.displayName)
+                        .tag(theme)
+                }
+            }
+            .pickerStyle(.inline)
+        }
+
+        CommandGroup(replacing: .help) {
+            Button("Load Demo Album") {
+                playback.loadDemoAlbum()
+            }
+
+            Button("Scamp Micro Deck Help") {
+                showsHowToUse = true
+            }
+            .keyboardShortcut("/", modifiers: [.command, .shift])
         }
     }
 }
