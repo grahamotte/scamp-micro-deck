@@ -17,10 +17,11 @@ Do the analysis yourself. Do not add or run a repo helper script for this skill.
    - `major` for intentional breaking changes.
    - `minor` for new user-visible capability.
    - `patch` for fixes, polish, refactors, and internal work that do not expand capability.
-4. Update every `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` in `Scamp/Scamp.xcodeproj/project.pbxproj`.
-5. Run `mise build`.
-6. If `mise build` passes, commit the version bump with the subject `Version`.
-7. Report the old version, new version, and short reasoning.
+4. If the selected bump is `major`, stop and ask the user to confirm before changing files. Do not ask for confirmation for `minor` or `patch` bumps.
+5. Update every `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` in `Scamp/Scamp.xcodeproj/project.pbxproj`.
+6. Run `mise build`.
+7. If `mise build` passes, commit the version bump with the subject `Version`.
+8. Report the old version, new version, and short reasoning.
 
 ## Guidance
 
