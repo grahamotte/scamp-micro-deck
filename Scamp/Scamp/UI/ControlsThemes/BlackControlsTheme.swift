@@ -2,57 +2,102 @@ import SwiftUI
 
 struct BlackControlsTheme: ControlsThemeDefinition {
     static let displayName = "Black"
-    private static let controlButtonWidth: CGFloat = 44
-    private static let controlButtonHeight: CGFloat = 36
-    private static let controlButtonCornerRadius: CGFloat = 7
-    private static let controlButtonIconSize: CGFloat = 11.5
+    private static let controlButtonWidth: CGFloat = 46
+    private static let controlButtonHeight: CGFloat = 34
+    private static let controlButtonCornerRadius: CGFloat = 11
+    private static let controlButtonIconSize: CGFloat = 12
 
     static let palette = ControlsThemePalette(
         tonearmHead: TonearmHeadThemePart { geometry in
-            RoundedRectangle(cornerRadius: max(2, geometry.headHeight * 0.1), style: .continuous)
+            let cornerRadius = max(3, geometry.headHeight * 0.18)
+
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                 .fill(
                     LinearGradient(
                         colors: [
-                            Color(red: 0.2, green: 0.23, blue: 0.29),
-                            Color(red: 0.11, green: 0.13, blue: 0.17),
-                            Color(red: 0.16, green: 0.19, blue: 0.24)
+                            Color(red: 0.18, green: 0.18, blue: 0.18),
+                            Color(red: 0.045, green: 0.047, blue: 0.052),
+                            Color(red: 0.105, green: 0.10, blue: 0.095)
                         ],
-                        startPoint: .top,
-                        endPoint: .bottom
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
                     )
                 )
                 .frame(width: geometry.headWidth, height: geometry.headHeight)
                 .overlay(
-                    RoundedRectangle(cornerRadius: max(2, geometry.headHeight * 0.1), style: .continuous)
-                        .stroke(Color.white.opacity(0.09), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                        .stroke(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(0.2),
+                                    Color(red: 0.86, green: 0.66, blue: 0.42).opacity(0.16),
+                                    Color.black.opacity(0.62)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: max(2, geometry.headHeight * 0.1), style: .continuous)
-                        .stroke(Color(red: 0.63, green: 0.84, blue: 0.96).opacity(0.16), lineWidth: 0.7)
-                        .padding(1.4)
+                    LinearGradient(
+                        colors: [
+                            Color.white.opacity(0.16),
+                            Color.clear
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .center
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+                    .padding(1.2)
+                )
+                .overlay(alignment: .bottomTrailing) {
+                    Capsule()
+                        .fill(Color(red: 0.92, green: 0.68, blue: 0.42).opacity(0.58))
+                        .frame(width: geometry.headWidth * 0.22, height: max(1.2, geometry.headHeight * 0.08))
+                        .padding(.trailing, geometry.headWidth * 0.13)
+                        .padding(.bottom, geometry.headHeight * 0.16)
+                }
+                .shadow(
+                    color: .black.opacity(0.42),
+                    radius: max(2, geometry.recordDiameter * 0.006),
+                    x: 0,
+                    y: max(1, geometry.recordDiameter * 0.003)
                 )
         },
         tonearmArm: TonearmArmThemePart { armPath, geometry in
             armPath
-                .stroke(style: StrokeStyle(lineWidth: geometry.armShaftThickness, lineCap: .square, lineJoin: .round))
+                .stroke(style: StrokeStyle(lineWidth: geometry.armShaftThickness, lineCap: .round, lineJoin: .round))
                 .foregroundStyle(
                     LinearGradient(
                         colors: [
-                            Color(red: 0.22, green: 0.25, blue: 0.31),
-                            Color(red: 0.12, green: 0.14, blue: 0.18)
+                            Color(red: 0.22, green: 0.215, blue: 0.205),
+                            Color(red: 0.07, green: 0.072, blue: 0.078),
+                            Color(red: 0.15, green: 0.145, blue: 0.135)
                         ],
-                        startPoint: .top,
-                        endPoint: .bottom
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
                     )
                 )
-                .shadow(color: .black.opacity(0.35), radius: 3, x: 0, y: 2)
+                .shadow(color: .black.opacity(0.46), radius: 4, x: 0, y: 2)
                 .overlay {
                     armPath
                         .stroke(
-                            Color(red: 0.7, green: 0.86, blue: 0.98).opacity(0.13),
+                            Color.white.opacity(0.16),
                             style: StrokeStyle(
-                                lineWidth: max(1, geometry.armShaftThickness * 0.12),
-                                lineCap: .square,
+                                lineWidth: max(1, geometry.armShaftThickness * 0.1),
+                                lineCap: .round,
+                                lineJoin: .round
+                            )
+                        )
+                }
+                .overlay {
+                    armPath
+                        .stroke(
+                            Color(red: 0.95, green: 0.68, blue: 0.4).opacity(0.08),
+                            style: StrokeStyle(
+                                lineWidth: max(0.8, geometry.armShaftThickness * 0.06),
+                                lineCap: .round,
                                 lineJoin: .round
                             )
                         )
@@ -61,62 +106,93 @@ struct BlackControlsTheme: ControlsThemeDefinition {
         tonearmPeg: TonearmPegThemePart { geometry in
             let pegSize = max(14, geometry.recordDiameter * 0.05)
 
-            RoundedRectangle(cornerRadius: max(3, pegSize * 0.16), style: .continuous)
+            Circle()
                 .fill(
-                    LinearGradient(
+                    RadialGradient(
                         colors: [
-                            Color(red: 0.19, green: 0.22, blue: 0.28),
-                            Color(red: 0.09, green: 0.11, blue: 0.15)
+                            Color.white.opacity(0.22),
+                            Color(red: 0.13, green: 0.13, blue: 0.13),
+                            Color(red: 0.035, green: 0.036, blue: 0.04)
                         ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
+                        center: UnitPoint(x: 0.34, y: 0.26),
+                        startRadius: pegSize * 0.04,
+                        endRadius: pegSize * 0.62
                     )
                 )
                 .frame(width: pegSize, height: pegSize)
                 .overlay(
-                    RoundedRectangle(cornerRadius: max(3, pegSize * 0.16), style: .continuous)
-                        .stroke(Color(red: 0.66, green: 0.84, blue: 0.95).opacity(0.16), lineWidth: 1)
+                    Circle()
+                        .stroke(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(0.2),
+                                    Color.black.opacity(0.62)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                )
+                .overlay(
+                    Circle()
+                        .stroke(Color(red: 0.96, green: 0.68, blue: 0.42).opacity(0.16), lineWidth: max(0.7, pegSize * 0.045))
+                        .padding(pegSize * 0.2)
                 )
         },
         tonearmHolder: TonearmHolderThemePart { geometry in
-            RoundedRectangle(cornerRadius: max(6, geometry.holderDiameter * 0.16), style: .continuous)
+            Circle()
                 .fill(
-                    LinearGradient(
+                    RadialGradient(
                         colors: [
-                            Color(red: 0.15, green: 0.17, blue: 0.22),
-                            Color(red: 0.08, green: 0.09, blue: 0.12)
+                            Color(red: 0.17, green: 0.165, blue: 0.155),
+                            Color(red: 0.075, green: 0.076, blue: 0.082),
+                            Color(red: 0.018, green: 0.019, blue: 0.022)
                         ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
+                        center: UnitPoint(x: 0.34, y: 0.28),
+                        startRadius: geometry.holderDiameter * 0.08,
+                        endRadius: geometry.holderDiameter * 0.64
                     )
                 )
                 .frame(width: geometry.holderDiameter, height: geometry.holderDiameter)
                 .overlay(
-                    RoundedRectangle(cornerRadius: max(6, geometry.holderDiameter * 0.16), style: .continuous)
+                    Circle()
                         .stroke(
                             LinearGradient(
                                 colors: [
-                                    Color(red: 0.7, green: 0.86, blue: 0.98).opacity(0.17),
-                                    Color.black.opacity(0.45)
+                                    Color(red: 0.52, green: 0.42, blue: 0.31).opacity(0.2),
+                                    Color(red: 0.2, green: 0.19, blue: 0.17).opacity(0.18),
+                                    Color.black.opacity(0.72)
                                 ],
-                                startPoint: .top,
-                                endPoint: .bottom
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
                             ),
                             lineWidth: max(1.2, geometry.recordDiameter * 0.002)
                         )
-                        .padding(geometry.holderDiameter * 0.08)
                 )
+                .overlay(
+                    Circle()
+                        .stroke(Color.black.opacity(0.55), lineWidth: max(1, geometry.recordDiameter * 0.004))
+                        .padding(geometry.holderDiameter * 0.18)
+                )
+                .overlay(
+                    Circle()
+                        .fill(Color.black.opacity(0.22))
+                        .padding(geometry.holderDiameter * 0.32)
+                )
+                .shadow(color: .black.opacity(0.34), radius: max(4, geometry.recordDiameter * 0.012), x: 0, y: max(2, geometry.recordDiameter * 0.006))
         },
         tonearmCounterweight: TonearmCounterweightThemePart { geometry in
-            RoundedRectangle(cornerRadius: max(3, geometry.counterweightHeight * 0.18), style: .continuous)
+            Capsule()
                 .fill(
                     LinearGradient(
                         colors: [
-                            Color(red: 0.19, green: 0.21, blue: 0.27),
-                            Color(red: 0.09, green: 0.11, blue: 0.15)
+                            Color(red: 0.21, green: 0.205, blue: 0.195),
+                            Color(red: 0.07, green: 0.071, blue: 0.078),
+                            Color(red: 0.12, green: 0.115, blue: 0.105)
                         ],
-                        startPoint: .top,
-                        endPoint: .bottom
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
                     )
                 )
                 .frame(
@@ -124,8 +200,23 @@ struct BlackControlsTheme: ControlsThemeDefinition {
                     height: geometry.counterweightHeight
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: max(3, geometry.counterweightHeight * 0.18), style: .continuous)
-                        .stroke(Color(red: 0.67, green: 0.85, blue: 0.97).opacity(0.14), lineWidth: 1)
+                    Capsule()
+                        .stroke(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(0.18),
+                                    Color.black.opacity(0.58)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                )
+                .overlay(
+                    Capsule()
+                        .stroke(Color(red: 0.95, green: 0.68, blue: 0.42).opacity(0.12), lineWidth: max(0.7, geometry.counterweightHeight * 0.08))
+                        .padding(geometry.counterweightHeight * 0.18)
                 )
         },
         transportButtons: ControlsThemeTransportButtons(
@@ -203,23 +294,23 @@ private struct BlackTransportButtonStyle: ButtonStyle {
     let iconSize: CGFloat
 
     func makeBody(configuration: Configuration) -> some View {
-        let pressOffset = configuration.isPressed ? buttonHeight * 0.05 : 0
-        let innerInset = configuration.isPressed ? buttonHeight * 0.16 : buttonHeight * 0.12
+        let pressOffset = configuration.isPressed ? buttonHeight * 0.045 : 0
+        let innerInset = configuration.isPressed ? buttonHeight * 0.17 : buttonHeight * 0.13
         let iconColor = configuration.isPressed
-            ? Color(red: 0.72, green: 0.86, blue: 0.95)
-            : Color(red: 0.8, green: 0.92, blue: 1)
+            ? Color(red: 0.92, green: 0.72, blue: 0.5)
+            : Color(red: 0.95, green: 0.87, blue: 0.74)
 
         return ZStack {
             RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                 .fill(
                     LinearGradient(
                         colors: [
-                            Color(red: 0.16, green: 0.19, blue: 0.25),
-                            Color(red: 0.08, green: 0.1, blue: 0.14),
-                            Color(red: 0.11, green: 0.13, blue: 0.17)
+                            Color(red: 0.19, green: 0.185, blue: 0.175),
+                            Color(red: 0.055, green: 0.057, blue: 0.064),
+                            Color(red: 0.025, green: 0.026, blue: 0.03)
                         ],
-                        startPoint: .top,
-                        endPoint: .bottom
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
                     )
                 )
 
@@ -227,11 +318,12 @@ private struct BlackTransportButtonStyle: ButtonStyle {
                 .stroke(
                     LinearGradient(
                         colors: [
-                            Color(red: 0.67, green: 0.86, blue: 0.99).opacity(0.22),
-                            Color.black.opacity(0.45)
+                            Color.white.opacity(0.24),
+                            Color(red: 0.86, green: 0.66, blue: 0.42).opacity(0.14),
+                            Color.black.opacity(0.6)
                         ],
-                        startPoint: .top,
-                        endPoint: .bottom
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
                     ),
                     lineWidth: 1
                 )
@@ -240,7 +332,7 @@ private struct BlackTransportButtonStyle: ButtonStyle {
                 .fill(
                     LinearGradient(
                         colors: [
-                            Color(red: 0.64, green: 0.84, blue: 0.98).opacity(configuration.isPressed ? 0.08 : 0.18),
+                            Color.white.opacity(configuration.isPressed ? 0.05 : 0.14),
                             Color.clear
                         ],
                         startPoint: .top,
@@ -253,18 +345,18 @@ private struct BlackTransportButtonStyle: ButtonStyle {
                 .fill(
                     LinearGradient(
                         colors: [
-                            Color(red: 0.2, green: 0.24, blue: 0.32),
-                            Color(red: 0.1, green: 0.13, blue: 0.18)
+                            Color(red: 0.17, green: 0.165, blue: 0.155),
+                            Color(red: 0.055, green: 0.057, blue: 0.064)
                         ],
-                        startPoint: .top,
-                        endPoint: .bottom
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
                     )
                 )
                 .padding(innerInset)
                 .offset(y: pressOffset)
                 .overlay(
                     RoundedRectangle(cornerRadius: max(4, cornerRadius * 0.7), style: .continuous)
-                        .stroke(Color.white.opacity(0.06), lineWidth: 0.8)
+                        .stroke(Color.white.opacity(0.08), lineWidth: 0.8)
                         .padding(innerInset)
                         .offset(y: pressOffset)
                 )
@@ -273,7 +365,7 @@ private struct BlackTransportButtonStyle: ButtonStyle {
                 .font(.system(size: iconSize, weight: .semibold))
                 .foregroundStyle(iconColor)
                 .offset(y: pressOffset)
-                .shadow(color: Color(red: 0.38, green: 0.72, blue: 0.98).opacity(0.24), radius: 2, x: 0, y: 0)
+                .shadow(color: Color(red: 0.95, green: 0.62, blue: 0.32).opacity(0.22), radius: 2, x: 0, y: 0)
         }
         .frame(width: buttonWidth, height: buttonHeight)
         .contentShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
