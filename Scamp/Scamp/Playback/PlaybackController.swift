@@ -118,17 +118,16 @@ final class PlaybackController: ObservableObject {
     }
 
     func recordRotationDegrees(at now: Date = Date()) -> Double {
-        let wrappedOffset = recordRotationOffsetDegrees.truncatingRemainder(dividingBy: 360)
         guard
             let anchorDate = recordRotationAnchorDate,
             recordRotationAnchorSpeed > 0
         else {
-            return wrappedOffset
+            return recordRotationOffsetDegrees
         }
 
         let elapsed = max(0, now.timeIntervalSince(anchorDate))
         let degreesPerSecond = (Self.platterRPM / 60) * 360 * recordRotationAnchorSpeed
-        return (wrappedOffset + (elapsed * degreesPerSecond)).truncatingRemainder(dividingBy: 360)
+        return recordRotationOffsetDegrees + (elapsed * degreesPerSecond)
     }
 
     private var measuredPlaylistProgress: Double {
@@ -724,7 +723,7 @@ final class PlaybackController: ObservableObject {
         let clampedTargetSpeed = min(max(targetSpeed, 0), 1)
         let startingSpeed = min(max(baseTurntableSpeed, 0), 1)
 
-        guard duration > 0 else {
+        guard duration > 0, clampedTargetSpeed != startingSpeed else {
             setTurntableSpeed(clampedTargetSpeed)
             completeSpinRamp()
             return
@@ -848,8 +847,12 @@ final class PlaybackController: ObservableObject {
 
     private func setTurntableSpeed(_ speed: Double) {
         let clampedSpeed = min(max(speed, 0), 1)
+        let previousEffectiveSpeed = effectiveTurntableSpeed
         baseTurntableSpeed = clampedSpeed
-        syncRecordRotation(to: effectiveTurntableSpeed, now: Date())
+        let nextEffectiveSpeed = effectiveTurntableSpeed
+        if nextEffectiveSpeed != previousEffectiveSpeed || (nextEffectiveSpeed > 0 && recordRotationAnchorDate == nil) {
+            syncRecordRotation(to: nextEffectiveSpeed, now: Date())
+        }
         applyTurntableState()
     }
 
@@ -866,7 +869,7 @@ final class PlaybackController: ObservableObject {
     }
 
     private func setRecordRotationOffset(_ degrees: Double) {
-        recordRotationOffsetDegrees = degrees.truncatingRemainder(dividingBy: 360)
+        recordRotationOffsetDegrees = degrees
         recordRotationAnchorDate = nil
         recordRotationAnchorSpeed = 0
     }

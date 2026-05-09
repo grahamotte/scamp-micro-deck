@@ -1,26 +1,58 @@
 import SwiftUI
 
-struct RecordAreaPlaceholderView: View {
+struct RecordAreaPlaceholderView: View, Equatable {
     let size: CGFloat
-    @ObservedObject var playback: PlaybackController
+    let playback: PlaybackController
     let theme: RecordTheme
+    private let turntableSpeed: Double
+    private let hasPlaylist: Bool
+    private let albumArtImage: NSImage?
+    private let albumArtIdentifier: ObjectIdentifier?
+    private let currentTrackDisplayName: String?
+    private let trackDurations: [TimeInterval]
 
     private let layout = VinylRecordLayout()
     private let unloadedBackdropColor = Color(white: 0.02)
     private let unloadedBackdropTrackColor = Color(white: 0.12)
     private var palette: RecordThemePalette { theme.palette }
 
+    init(size: CGFloat, playback: PlaybackController, theme: RecordTheme) {
+        self.size = size
+        self.playback = playback
+        self.theme = theme
+        turntableSpeed = playback.turntableSpeed
+        hasPlaylist = playback.hasPlaylist
+        albumArtImage = playback.albumArtImage
+        albumArtIdentifier = playback.albumArtImage.map(ObjectIdentifier.init)
+        currentTrackDisplayName = playback.currentTrackDisplayName
+        trackDurations = playback.trackDurations
+    }
+
+    static func == (lhs: RecordAreaPlaceholderView, rhs: RecordAreaPlaceholderView) -> Bool {
+        lhs.size == rhs.size &&
+            lhs.playback === rhs.playback &&
+            lhs.theme == rhs.theme &&
+            lhs.turntableSpeed == rhs.turntableSpeed &&
+            lhs.hasPlaylist == rhs.hasPlaylist &&
+            lhs.albumArtIdentifier == rhs.albumArtIdentifier &&
+            lhs.trackDurations == rhs.trackDurations &&
+            (lhs.albumArtIdentifier != nil || lhs.currentTrackDisplayName == rhs.currentTrackDisplayName)
+    }
+
     var body: some View {
         let geometry = layout.resolved(forDiameter: size)
 
-        TimelineView(.animation(minimumInterval: 1.0 / 60.0, paused: playback.turntableSpeed <= 0.0001)) { context in
+        TimelineView(.animation(minimumInterval: 1.0 / 60.0, paused: turntableSpeed <= 0.0001)) { context in
             let rotationDegrees = playback.recordRotationDegrees(at: context.date)
-            let centerPegDiameter = playback.hasPlaylist ? max(5, size * 0.02) : max(5, size * 0.018)
+            let centerPegDiameter = hasPlaylist ? max(5, size * 0.02) : max(5, size * 0.018)
 
             ZStack {
                 recordSurface(for: geometry)
                     .frame(width: size, height: size)
                     .rotationEffect(.degrees(rotationDegrees))
+                    .transaction { transaction in
+                        transaction.animation = nil
+                    }
 
                 centerPeg(diameter: centerPegDiameter)
             }
@@ -30,7 +62,7 @@ struct RecordAreaPlaceholderView: View {
 
     @ViewBuilder
     private func recordSurface(for geometry: VinylRecordGeometry) -> some View {
-        if playback.hasPlaylist {
+        if hasPlaylist {
             loadedRecordSurface(for: geometry)
         } else {
             emptyRecordSurface
@@ -123,20 +155,20 @@ struct RecordAreaPlaceholderView: View {
                 .clipShape(Circle())
                 .frame(width: geometry.labelRadius * 2, height: geometry.labelRadius * 2)
                 .overlay {
-                    if playback.albumArtImage == nil {
+                    if albumArtImage == nil {
                         Circle()
                             .stroke(palette.trackDividerColor.opacity(0.72), lineWidth: max(1, size * 0.0025))
                     }
                 }
                 .overlay {
-                    if let albumArtImage = playback.albumArtImage {
+                    if let albumArtImage {
                         Image(nsImage: albumArtImage)
                             .resizable()
                             .scaledToFill()
                             .frame(width: geometry.labelRadius * 2, height: geometry.labelRadius * 2)
                             .clipShape(Circle())
                     } else {
-                        Text(playback.currentTrackDisplayName ?? "SCAMP")
+                        Text(currentTrackDisplayName ?? "SCAMP")
                             .font(.system(size: max(11, size * 0.028), weight: .semibold, design: .rounded))
                             .foregroundStyle(.white.opacity(0.88))
                             .multilineTextAlignment(.center)
@@ -212,7 +244,7 @@ struct RecordAreaPlaceholderView: View {
     }
 
     private func trackDivisionRadii(in geometry: VinylRecordGeometry) -> [CGFloat] {
-        let durations = playback.trackDurations.filter { $0.isFinite && $0 > 0 }
+        let durations = trackDurations.filter { $0.isFinite && $0 > 0 }
         guard durations.count > 1 else { return [] }
 
         let totalDuration = durations.reduce(0, +)

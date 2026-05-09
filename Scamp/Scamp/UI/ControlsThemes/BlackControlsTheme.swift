@@ -180,7 +180,6 @@ struct BlackControlsTheme: ControlsThemeDefinition {
                         .fill(Color.black.opacity(0.22))
                         .padding(geometry.holderDiameter * 0.32)
                 )
-                .shadow(color: .black.opacity(0.34), radius: max(4, geometry.recordDiameter * 0.012), x: 0, y: max(2, geometry.recordDiameter * 0.006))
         },
         tonearmCounterweight: TonearmCounterweightThemePart { geometry in
             Capsule()
