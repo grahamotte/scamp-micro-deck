@@ -93,25 +93,6 @@ private struct WoodTableTexture: View {
                 context.stroke(grain, with: .color(Color.black.opacity(0.08 + abs(sin(Double(row) * 0.41)) * 0.09)), lineWidth: lineWidth)
                 context.stroke(grain.applying(CGAffineTransform(translationX: 0, y: -0.7)), with: .color(Color.white.opacity(0.015 + abs(cos(Double(row) * 0.33)) * 0.03)), lineWidth: 0.6)
             }
-
-            for knot in [
-                (x: size.width * 0.24, y: size.height * 0.30, r: min(size.width, size.height) * 0.055),
-                (x: size.width * 0.66, y: size.height * 0.58, r: min(size.width, size.height) * 0.044),
-                (x: size.width * 0.86, y: size.height * 0.22, r: min(size.width, size.height) * 0.032)
-            ] {
-                let center = CGPoint(x: knot.x, y: knot.y)
-                for ring in 0..<6 {
-                    let scale = CGFloat(ring) * 0.34 + 1
-                    let rect = CGRect(
-                        x: center.x - knot.r * scale * 1.55,
-                        y: center.y - knot.r * scale * 0.56,
-                        width: knot.r * scale * 3.1,
-                        height: knot.r * scale * 1.12
-                    )
-                    context.stroke(Path(ellipseIn: rect), with: .color(Color.black.opacity(0.12 - Double(ring) * 0.012)), lineWidth: max(1, knot.r * 0.055))
-                }
-                context.fill(Path(ellipseIn: CGRect(x: center.x - knot.r * 0.36, y: center.y - knot.r * 0.16, width: knot.r * 0.72, height: knot.r * 0.32)), with: .color(Color.black.opacity(0.22)))
-            }
         }
         .allowsHitTesting(false)
     }
