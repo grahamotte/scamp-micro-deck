@@ -16,7 +16,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "379FEFD92F44283D00628FE9"
-               BuildableName = "ScampMicroDeck.app"
+               BuildableName = "Scamp Micro Deck.app"
                BlueprintName = "ScampMicroDeck"
                ReferencedContainer = "container:ScampMicroDeck.xcodeproj">
             </BuildableReference>
@@ -45,7 +45,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "379FEFD92F44283D00628FE9"
-            BuildableName = "ScampMicroDeck.app"
+            BuildableName = "Scamp Micro Deck.app"
             BlueprintName = "ScampMicroDeck"
             ReferencedContainer = "container:ScampMicroDeck.xcodeproj">
          </BuildableReference>
@@ -62,7 +62,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "379FEFD92F44283D00628FE9"
-            BuildableName = "ScampMicroDeck.app"
+            BuildableName = "Scamp Micro Deck.app"
             BlueprintName = "ScampMicroDeck"
             ReferencedContainer = "container:ScampMicroDeck.xcodeproj">
          </BuildableReference>

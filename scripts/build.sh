@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CONFIGURATION="${1:-Debug}"
 DERIVED_DATA_PATH="$ROOT_DIR/dist/.build/xcode"
-ROOT_APP_PATH="$ROOT_DIR/dist/ScampMicroDeck.app"
+ROOT_APP_PATH="$ROOT_DIR/dist/Scamp Micro Deck.app"
 
 if [[ "$CONFIGURATION" != "Debug" && "$CONFIGURATION" != "Release" ]]; then
   echo "Usage: $0 [Debug|Release]"
@@ -18,7 +18,7 @@ else
   exit 1
 fi
 
-APP_PATH="$DERIVED_DATA_PATH/Build/Products/$CONFIGURATION/ScampMicroDeck.app"
+APP_PATH="$DERIVED_DATA_PATH/Build/Products/$CONFIGURATION/Scamp Micro Deck.app"
 
 if ! xcodebuild -version >/dev/null 2>&1; then
   echo "xcodebuild is unavailable. Install Xcode and select it:"

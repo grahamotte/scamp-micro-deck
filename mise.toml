@@ -1,5 +1,5 @@
 [tasks.build]
-description = "Build Scamp Micro Deck and publish /ScampMicroDeck.app"
+description = "Build Scamp Micro Deck and publish /Scamp Micro Deck.app"
 run = "SCAMP_OPEN_FINDER=1 ./scripts/build.sh"
 
 [tasks.start]

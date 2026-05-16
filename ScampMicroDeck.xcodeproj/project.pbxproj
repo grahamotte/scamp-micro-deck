@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		379FEFDA2F44283D00628FE9 /* ScampMicroDeck.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ScampMicroDeck.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		379FEFDA2F44283D00628FE9 /* Scamp Micro Deck.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Scamp Micro Deck.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -40,7 +40,7 @@
 		379FEFDB2F44283D00628FE9 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				379FEFDA2F44283D00628FE9 /* ScampMicroDeck.app */,
+				379FEFDA2F44283D00628FE9 /* Scamp Micro Deck.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -66,8 +66,8 @@
 			name = ScampMicroDeck;
 			packageProductDependencies = (
 			);
-			productName = ScampMicroDeck;
-			productReference = 379FEFDA2F44283D00628FE9 /* ScampMicroDeck.app */;
+			productName = "Scamp Micro Deck";
+			productReference = 379FEFDA2F44283D00628FE9 /* Scamp Micro Deck.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -258,6 +258,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Scamp Micro Deck";
+				INFOPLIST_KEY_CFBundleName = "Scamp Micro Deck";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "© Graham Otte";
@@ -267,7 +268,8 @@
 				);
 				MARKETING_VERSION = 1.2.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.grahamotte.scamp;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Scamp Micro Deck";
+				EXECUTABLE_NAME = ScampMicroDeck;
 				REGISTER_APP_GROUPS = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -293,6 +295,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Scamp Micro Deck";
+				INFOPLIST_KEY_CFBundleName = "Scamp Micro Deck";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "© Graham Otte";
@@ -302,7 +305,8 @@
 				);
 				MARKETING_VERSION = 1.2.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.grahamotte.scamp;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Scamp Micro Deck";
+				EXECUTABLE_NAME = ScampMicroDeck;
 				REGISTER_APP_GROUPS = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
