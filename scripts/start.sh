@@ -14,13 +14,13 @@ osascript -e 'tell application "Scamp" to quit' >/dev/null 2>&1 || true
 killall Scamp >/dev/null 2>&1 || true
 
 echo "Cleaning previous app bundles..."
-rm -rf "$ROOT_DIR/Scamp.app" "$ROOT_DIR/Sampt.app"
+rm -rf "$ROOT_DIR/Scamp.app" "$ROOT_DIR/Sampt.app" "$ROOT_DIR/dist/.build/xcode" "$ROOT_DIR/dist/Scamp.app"
 
 echo "Cleaning derived build output..."
-rm -rf "$ROOT_DIR/.build/xcode"
+rm -rf "$ROOT_DIR/dist/.build/xcode"
 
 echo "Building fresh app..."
 "$ROOT_DIR/scripts/build.sh" "$CONFIGURATION"
 
 echo "Launching app..."
-open "$ROOT_DIR/Scamp.app"
+open "$ROOT_DIR/dist/Scamp.app"
