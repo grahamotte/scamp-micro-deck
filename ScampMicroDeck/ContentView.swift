@@ -27,7 +27,7 @@ struct ContentView: View {
         .toolbar(removing: .sidebarToggle)
         .background(TitlebarSidebarButtonHider())
         .background(ThemeWindowConfigurator())
-        .frame(width: ScampLayout.windowWidth, height: ScampLayout.windowHeight)
+        .frame(width: ScampMicroDeckLayout.windowWidth, height: ScampMicroDeckLayout.windowHeight)
         .onDrop(of: [UTType.fileURL.identifier], isTargeted: nil, perform: handleFolderDrop(providers:))
         .sheet(isPresented: $showsHowToUse) {
             HowToUseSheet(onOK: dismissHowToUse)
@@ -102,10 +102,10 @@ private struct HowToUseSheet: View {
                 .font(.title2.weight(.semibold))
 
             VStack(alignment: .leading, spacing: 12) {
-                Text("Scamp is designed to feel a bit like using a real vinyl record player.")
+                Text("Scamp Micro Deck is designed to feel a bit like using a real vinyl record player.")
 
                 Text("To load your first album, click the \(Image(systemName: "eject.fill")) eject button.")
-                Text("Choose a folder with audio files and album art, and Scamp will start playing from there.")
+                Text("Choose a folder with audio files and album art, and Scamp Micro Deck will start playing from there.")
                 Text("You can also drag a folder straight into the window to load it.")
                 Text("Want a quick test? Use \(Text("Help > Load Demo Album").bold()) to load the bundled sample record.")
                 Text("Want to switch albums? Just press \(Image(systemName: "eject.fill")) again and pick a different folder.")

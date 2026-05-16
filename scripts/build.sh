@@ -4,23 +4,21 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CONFIGURATION="${1:-Debug}"
 DERIVED_DATA_PATH="$ROOT_DIR/dist/.build/xcode"
-ROOT_APP_PATH="$ROOT_DIR/dist/Scamp.app"
+ROOT_APP_PATH="$ROOT_DIR/dist/ScampMicroDeck.app"
 
 if [[ "$CONFIGURATION" != "Debug" && "$CONFIGURATION" != "Release" ]]; then
   echo "Usage: $0 [Debug|Release]"
   exit 1
 fi
 
-if [[ -d "$ROOT_DIR/Scamp.xcodeproj" ]]; then
-  PROJECT_PATH="$ROOT_DIR/Scamp.xcodeproj"
-elif [[ -d "$ROOT_DIR/Scamp/Scamp.xcodeproj" ]]; then
-  PROJECT_PATH="$ROOT_DIR/Scamp/Scamp.xcodeproj"
+if [[ -d "$ROOT_DIR/ScampMicroDeck.xcodeproj" ]]; then
+  PROJECT_PATH="$ROOT_DIR/ScampMicroDeck.xcodeproj"
 else
-  echo "Could not find Scamp.xcodeproj in root or /Scamp"
+  echo "Could not find ScampMicroDeck.xcodeproj"
   exit 1
 fi
 
-APP_PATH="$DERIVED_DATA_PATH/Build/Products/$CONFIGURATION/Scamp.app"
+APP_PATH="$DERIVED_DATA_PATH/Build/Products/$CONFIGURATION/ScampMicroDeck.app"
 
 if ! xcodebuild -version >/dev/null 2>&1; then
   echo "xcodebuild is unavailable. Install Xcode and select it:"
@@ -28,10 +26,10 @@ if ! xcodebuild -version >/dev/null 2>&1; then
   exit 1
 fi
 
-echo "Building Scamp ($CONFIGURATION)..."
+echo "Building Scamp Micro Deck ($CONFIGURATION)..."
 xcodebuild \
   -project "$PROJECT_PATH" \
-  -scheme Scamp \
+  -scheme ScampMicroDeck \
   -configuration "$CONFIGURATION" \
   -derivedDataPath "$DERIVED_DATA_PATH" \
   -destination "platform=macOS" \

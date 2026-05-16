@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-struct AboutScampView: View {
+struct AboutScampMicroDeckView: View {
     static let windowID = "about-scamp"
 
     private let sourceCodeURL = URL(string: "https://codeberg.org/grahamotte/scamp-micro-deck")!
@@ -54,7 +54,7 @@ struct AboutScampView: View {
                     Text("Privacy")
                         .font(.headline)
 
-                    Text("Scamp does not collect any personal information or telemetry.")
+                    Text("Scamp Micro Deck does not collect any personal information or telemetry.")
                         .foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -90,5 +90,5 @@ private struct AboutFeatureRow: View {
 }
 
 #Preview {
-    AboutScampView()
+    AboutScampMicroDeckView()
 }

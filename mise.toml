@@ -1,5 +1,5 @@
 [tasks.build]
-description = "Build Scamp and publish /Scamp.app"
+description = "Build Scamp Micro Deck and publish /ScampMicroDeck.app"
 run = "SCAMP_OPEN_FINDER=1 ./scripts/build.sh"
 
 [tasks.start]
@@ -7,11 +7,11 @@ description = "Stop running app, clean old builds, rebuild, copy to root, and la
 run = "./scripts/start.sh"
 
 [tasks.xcode]
-description = "Open Scamp.xcodeproj in Xcode"
-run = "bash -c 'if [[ -d Scamp.xcodeproj ]]; then open Scamp.xcodeproj; elif [[ -d Scamp/Scamp.xcodeproj ]]; then open Scamp/Scamp.xcodeproj; else echo \"Could not find Scamp.xcodeproj in root or Scamp/\" >&2; exit 1; fi'"
+description = "Open ScampMicroDeck.xcodeproj in Xcode"
+run = "bash -c 'if [[ -d ScampMicroDeck.xcodeproj ]]; then open ScampMicroDeck.xcodeproj; else echo \"Could not find ScampMicroDeck.xcodeproj\" >&2; exit 1; fi'"
 
 [tasks.publish]
-description = "Archive and upload Scamp to App Store Connect"
+description = "Archive and upload Scamp Micro Deck to App Store Connect"
 run = "./scripts/publish.sh"
 
 [tasks.push]

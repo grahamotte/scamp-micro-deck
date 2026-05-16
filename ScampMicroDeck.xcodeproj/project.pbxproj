@@ -7,13 +7,13 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		379FEFDA2F44283D00628FE9 /* Scamp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Scamp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		379FEFDA2F44283D00628FE9 /* ScampMicroDeck.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ScampMicroDeck.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		379FEFDC2F44283D00628FE9 /* Scamp */ = {
+		379FEFDC2F44283D00628FE9 /* ScampMicroDeck */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Scamp;
+			path = ScampMicroDeck;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -32,7 +32,7 @@
 		379FEFD12F44283D00628FE9 = {
 			isa = PBXGroup;
 			children = (
-				379FEFDC2F44283D00628FE9 /* Scamp */,
+				379FEFDC2F44283D00628FE9 /* ScampMicroDeck */,
 				379FEFDB2F44283D00628FE9 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -40,7 +40,7 @@
 		379FEFDB2F44283D00628FE9 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				379FEFDA2F44283D00628FE9 /* Scamp.app */,
+				379FEFDA2F44283D00628FE9 /* ScampMicroDeck.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -48,9 +48,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		379FEFD92F44283D00628FE9 /* Scamp */ = {
+		379FEFD92F44283D00628FE9 /* ScampMicroDeck */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 379FEFE72F44283D00628FE9 /* Build configuration list for PBXNativeTarget "Scamp" */;
+			buildConfigurationList = 379FEFE72F44283D00628FE9 /* Build configuration list for PBXNativeTarget "ScampMicroDeck" */;
 			buildPhases = (
 				379FEFD62F44283D00628FE9 /* Sources */,
 				379FEFD72F44283D00628FE9 /* Frameworks */,
@@ -61,13 +61,13 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				379FEFDC2F44283D00628FE9 /* Scamp */,
+				379FEFDC2F44283D00628FE9 /* ScampMicroDeck */,
 			);
-			name = Scamp;
+			name = ScampMicroDeck;
 			packageProductDependencies = (
 			);
-			productName = Scamp;
-			productReference = 379FEFDA2F44283D00628FE9 /* Scamp.app */;
+			productName = ScampMicroDeck;
+			productReference = 379FEFDA2F44283D00628FE9 /* ScampMicroDeck.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -85,7 +85,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 379FEFD52F44283D00628FE9 /* Build configuration list for PBXProject "Scamp" */;
+			buildConfigurationList = 379FEFD52F44283D00628FE9 /* Build configuration list for PBXProject "ScampMicroDeck" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -99,7 +99,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				379FEFD92F44283D00628FE9 /* Scamp */,
+				379FEFD92F44283D00628FE9 /* ScampMicroDeck */,
 			);
 		};
 /* End PBXProject section */
@@ -316,7 +316,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		379FEFD52F44283D00628FE9 /* Build configuration list for PBXProject "Scamp" */ = {
+		379FEFD52F44283D00628FE9 /* Build configuration list for PBXProject "ScampMicroDeck" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				379FEFE52F44283D00628FE9 /* Debug */,
@@ -325,7 +325,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		379FEFE72F44283D00628FE9 /* Build configuration list for PBXNativeTarget "Scamp" */ = {
+		379FEFE72F44283D00628FE9 /* Build configuration list for PBXNativeTarget "ScampMicroDeck" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				379FEFE82F44283D00628FE9 /* Debug */,

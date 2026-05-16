@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct ScampApp: App {
+struct ScampMicroDeckApp: App {
     @StateObject private var playback = PlaybackController()
     @AppStorage("selectedTableTheme") private var selectedTableThemeRawValue = TableTheme.wood.rawValue
     @AppStorage("selectedRecordTheme") private var selectedRecordThemeRawValue = RecordTheme.black.rawValue
@@ -48,11 +48,11 @@ struct ScampApp: App {
                 showsHowToUse = true
             }
         }
-        .defaultSize(width: ScampLayout.windowWidth, height: ScampLayout.windowHeight)
+        .defaultSize(width: ScampMicroDeckLayout.windowWidth, height: ScampMicroDeckLayout.windowHeight)
         .windowResizability(.contentSize)
         .windowStyle(.hiddenTitleBar)
         .commands {
-            ScampCommands(
+            ScampMicroDeckCommands(
                 playback: playback,
                 tableTheme: selectedTableTheme,
                 recordTheme: selectedRecordTheme,
@@ -61,15 +61,15 @@ struct ScampApp: App {
             )
         }
 
-        Window("About Scamp", id: AboutScampView.windowID) {
-            AboutScampView()
+        Window("About Scamp Micro Deck", id: AboutScampMicroDeckView.windowID) {
+            AboutScampMicroDeckView()
         }
         .defaultSize(width: 460, height: 520)
         .windowResizability(.contentSize)
     }
 }
 
-private struct ScampCommands: Commands {
+private struct ScampMicroDeckCommands: Commands {
     let playback: PlaybackController
     @Binding var tableTheme: TableTheme
     @Binding var recordTheme: RecordTheme
@@ -94,7 +94,7 @@ private struct ScampCommands: Commands {
     var body: some Commands {
         CommandGroup(replacing: .appInfo) {
             Button("About Scamp Micro Deck") {
-                openWindow(id: AboutScampView.windowID)
+                openWindow(id: AboutScampMicroDeckView.windowID)
             }
         }
 

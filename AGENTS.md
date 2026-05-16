@@ -1,4 +1,4 @@
-# Scamp Agent Guide
+# Scamp Micro Deck Agent Guide
 
 ## Product Goal
 

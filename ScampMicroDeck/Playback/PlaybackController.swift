@@ -296,7 +296,7 @@ final class PlaybackController: ObservableObject {
         }
 
         let demoAlbumURL = applicationSupportURL
-            .appendingPathComponent(Bundle.main.bundleIdentifier ?? "Scamp", isDirectory: true)
+            .appendingPathComponent(Bundle.main.bundleIdentifier ?? "ScampMicroDeck", isDirectory: true)
             .appendingPathComponent("Demo Album", isDirectory: true)
 
         do {
